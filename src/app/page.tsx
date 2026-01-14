@@ -24,21 +24,21 @@ export default function Home() {
     <div className="min-h-screen transition-colors duration-300" style={{ backgroundColor: "var(--bg-primary)" }}>
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <div className="flex items-center justify-between">
-              <h1 className="text-4xl font-bold transition-colors duration-300" style={{ color: "var(--text-primary)" }}>
-                F1 2026 Calendar
-              </h1>
-              <ThemeToggle />
-            </div>
-            <p className="mt-2 text-lg transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
+        <div className="mb-8">
+          <div className="mb-4 flex items-center justify-between">
+            <h1 className="text-4xl font-bold transition-colors duration-300" style={{ color: "var(--text-primary)" }}>
+              F1 2026 Calendar
+            </h1>
+            <ThemeToggle />
+          </div>
+          <div className="mb-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+            <p className="text-lg transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
               A product-first view of the season — weekends, formats, and the
               rhythm of the calendar.
             </p>
-          </div>
-          <div className="text-sm transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
-            {races2026.length} races loaded
+            <div className="text-sm transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
+              {races2026.length} races loaded
+            </div>
           </div>
         </div>
 

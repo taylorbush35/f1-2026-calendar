@@ -570,21 +570,39 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
                   const isSelected = selectedRaceId === race.round;
 
                   return (
-                    <circle
+                    <g
                       key={`${race.round}-${xShift}`}
-                      cx={x}
-                      cy={y}
-                      r={isSelected ? 8 : 5}
-                      fill={isSelected ? "var(--accent-primary)" : "var(--accent-muted)"}
-                      stroke="var(--bg-primary)"
-                      strokeWidth={isSelected ? 3 : 2}
-                      className={isSelected ? "transition-all duration-300" : "transition-all duration-300 cursor-pointer"}
-                      style={{
-                        filter: isSelected ? "drop-shadow(0 0 4px var(--accent-primary))" : "none",
-                      }}
                       onClick={() => onSelectRace?.(race.round)}
                       onPointerDown={(e) => e.stopPropagation()}
-                    />
+                      className="cursor-pointer transition-all duration-300"
+                    >
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r={isSelected ? 8 : 5}
+                        fill={isSelected ? "var(--accent-primary)" : "var(--accent-muted)"}
+                        stroke="var(--bg-primary)"
+                        strokeWidth={isSelected ? 3 : 2}
+                        style={{
+                          filter: isSelected ? "drop-shadow(0 0 4px var(--accent-primary))" : "none",
+                        }}
+                      />
+                      <text
+                        x={x}
+                        y={y}
+                        fontSize={isSelected ? 7 : 6}
+                        fontWeight="bold"
+                        fill="white"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        style={{
+                          pointerEvents: "none",
+                          userSelect: "none",
+                        }}
+                      >
+                        {race.round}
+                      </text>
+                    </g>
                   );
                 })}
               </g>
