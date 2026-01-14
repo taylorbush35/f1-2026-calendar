@@ -29,17 +29,31 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
   // Globe longitude offset state (animated camera position)
   const [globeLonOffset, setGlobeLonOffset] = useState(0);
 
-  // Drag panning state and refs
-  const [isDragging, setIsDragging] = useState(false);
+  // Drag panning refs (no state for smooth updates)
+  const isDraggingRef = useRef(false);
   const startXRef = useRef(0);
+  const lastXRef = useRef(0);
+  const pendingDragPxRef = useRef(0);
+  const dragRafIdRef = useRef<number | null>(null);
+  const hasStartedDragRef = useRef(false);
   const startLonOffsetRef = useRef(0);
   const animationIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const hasStartedDragRef = useRef(false);
+
+  // Wheel panning refs and rAF
+  const pendingWheelDeltaRef = useRef(0);
+  const rafIdRef = useRef<number | null>(null);
+
+  // Cursor state (for visual feedback only)
+  const [cursor, setCursor] = useState<"grab" | "grabbing">("grab");
 
   // Drag constants
-  const DRAG_SENSITIVITY = 0.8;
-  const DRAG_THRESHOLD = 4;
-  const degreesPerPixel = 360 / width;
+  const DRAG_SENSITIVITY = 0.15; // degrees per pixel
+  const DRAG_THRESHOLD = 4; // pixels before drag starts
+  const MAX_DRAG_DELTA_PER_FRAME = 20; // pixels per frame clamp
+
+  // Wheel panning constants
+  const WHEEL_SENSITIVITY = 0.12;
+  const MAX_WHEEL_DELTA = 40; // px equivalent per frame
 
   // Zoom state
   const [zoom, setZoom] = useState(1);
@@ -56,10 +70,24 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
     setUserHasZoomed(true);
   };
 
+  // Cleanup rAF loops on unmount
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
+      if (dragRafIdRef.current !== null) {
+        cancelAnimationFrame(dragRafIdRef.current);
+        dragRafIdRef.current = null;
+      }
+    };
+  }, []);
+
   // Animate globe offset to selected race's longitude (shortest rotation)
   useEffect(() => {
     // Don't animate if user is dragging
-    if (isDragging) return;
+    if (isDraggingRef.current) return;
 
     if (!selectedRaceId) return;
     const targetCoords = raceCoordinates[selectedRaceId];
@@ -79,8 +107,8 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
 
     const interval = setInterval(() => {
       step++;
-      if (step >= steps || isDragging) {
-        if (!isDragging) {
+      if (step >= steps || isDraggingRef.current) {
+        if (!isDraggingRef.current) {
           setGlobeLonOffset(targetLon);
         }
         clearInterval(interval);
@@ -96,7 +124,7 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
       clearInterval(interval);
       animationIntervalRef.current = null;
     };
-  }, [selectedRaceId, globeLonOffset, isDragging]);
+  }, [selectedRaceId, globeLonOffset]);
 
   // Auto-zoom for European races (if user hasn't manually zoomed)
   useEffect(() => {
@@ -111,9 +139,24 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
     }
   }, [selectedRaceId, userHasZoomed]);
 
+  // Helper to normalize longitude offset
+  const normalizeOffset = (offset: number): number => {
+    while (offset > 180) offset -= 360;
+    while (offset < -180) offset += 360;
+    return offset;
+  };
+
   // Drag panning handlers
   const handlePointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
     if (e.button !== 0) return; // Only primary button
+
+    // Ignore drag start if target is a button/control
+    const target = e.target as HTMLElement;
+    if (target.tagName === "BUTTON" || target.closest("button")) {
+      return;
+    }
+
+    e.preventDefault();
 
     // Clear any active animation
     if (animationIntervalRef.current) {
@@ -121,9 +164,12 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
       animationIntervalRef.current = null;
     }
 
-    setIsDragging(false);
+    // Reset drag state
+    isDraggingRef.current = false;
     hasStartedDragRef.current = false;
+    pendingDragPxRef.current = 0;
     startXRef.current = e.clientX;
+    lastXRef.current = e.clientX;
     startLonOffsetRef.current = globeLonOffset;
 
     (e.currentTarget as any).setPointerCapture(e.pointerId);
@@ -131,71 +177,171 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
 
   const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
     if (!e.buttons) {
-      setIsDragging(false);
-      hasStartedDragRef.current = false;
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        hasStartedDragRef.current = false;
+        setCursor("grab");
+        if (dragRafIdRef.current !== null) {
+          cancelAnimationFrame(dragRafIdRef.current);
+          dragRafIdRef.current = null;
+        }
+      }
       return;
     }
 
-    const dx = e.clientX - startXRef.current;
+    e.preventDefault();
+
+    const currentX = e.clientX;
+    const dxFromStart = currentX - startXRef.current;
 
     // Only start drag after threshold
-    if (!hasStartedDragRef.current && Math.abs(dx) < DRAG_THRESHOLD) {
-      return;
-    }
-
     if (!hasStartedDragRef.current) {
+      if (Math.abs(dxFromStart) < DRAG_THRESHOLD) {
+        return;
+      }
       hasStartedDragRef.current = true;
-      setIsDragging(true);
+      isDraggingRef.current = true;
+      setCursor("grabbing");
     }
 
-    // Convert pixels to degrees
-    const degreesDelta = -dx * degreesPerPixel * DRAG_SENSITIVITY;
-    let newOffset = startLonOffsetRef.current + degreesDelta;
+    // Accumulate pixel delta (relative to last position)
+    const dx = currentX - lastXRef.current;
+    lastXRef.current = currentX;
+    pendingDragPxRef.current += dx;
 
-    // Normalize/wrap offset to [-180, 180]
-    while (newOffset > 180) newOffset -= 360;
-    while (newOffset < -180) newOffset += 360;
+    // Start rAF loop if not already running
+    if (dragRafIdRef.current === null) {
+      const tick = () => {
+        const deltaPx = pendingDragPxRef.current;
 
-    setGlobeLonOffset(newOffset);
+        if (Math.abs(deltaPx) > 0.01 && isDraggingRef.current) {
+          // Clamp per-frame delta
+          const clampedPx = Math.max(-MAX_DRAG_DELTA_PER_FRAME, Math.min(MAX_DRAG_DELTA_PER_FRAME, deltaPx));
+
+          // Convert pixels to longitude delta
+          const lonDelta = clampedPx * DRAG_SENSITIVITY;
+
+          // Update globeLonOffset with functional setState
+          setGlobeLonOffset((prev) => {
+            return normalizeOffset(prev - lonDelta); // Negative because dragging right rotates left
+          });
+
+          // Decay the pending delta
+          pendingDragPxRef.current *= 0.3;
+
+          dragRafIdRef.current = requestAnimationFrame(tick);
+        } else {
+          // Reset when delta is small enough or drag ended
+          pendingDragPxRef.current = 0;
+          dragRafIdRef.current = null;
+        }
+      };
+      dragRafIdRef.current = requestAnimationFrame(tick);
+    }
   };
 
   const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
     (e.currentTarget as any).releasePointerCapture(e.pointerId);
-    setIsDragging(false);
+    isDraggingRef.current = false;
     hasStartedDragRef.current = false;
-  };
-
-  const handlePointerLeave = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (isDragging) {
-      (e.currentTarget as any).releasePointerCapture(e.pointerId);
-      setIsDragging(false);
-      hasStartedDragRef.current = false;
+    setCursor("grab");
+    pendingDragPxRef.current = 0;
+    if (dragRafIdRef.current !== null) {
+      cancelAnimationFrame(dragRafIdRef.current);
+      dragRafIdRef.current = null;
     }
   };
 
-  // Wheel zoom handler
+  const handlePointerLeave = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (isDraggingRef.current) {
+      (e.currentTarget as any).releasePointerCapture(e.pointerId);
+      isDraggingRef.current = false;
+      hasStartedDragRef.current = false;
+      setCursor("grab");
+      pendingDragPxRef.current = 0;
+      if (dragRafIdRef.current !== null) {
+        cancelAnimationFrame(dragRafIdRef.current);
+        dragRafIdRef.current = null;
+      }
+    }
+  };
+
+  // Wheel handler for horizontal panning and vertical zoom
   const handleWheel = (e: React.WheelEvent<SVGSVGElement>) => {
     e.preventDefault(); // Prevent page scroll while hovering the globe
 
-    const rawDelta = e.deltaY;
+    // Handle horizontal scrolling for panning
+    const rawDeltaX = e.deltaX;
+    if (Math.abs(rawDeltaX) > 0) {
+      // Normalize delta based on deltaMode
+      let normalizedDelta = rawDeltaX;
+      if (e.deltaMode === 1) {
+        // Line mode - multiply by ~16px per line
+        normalizedDelta = rawDeltaX * 16;
+      }
 
-    // Tiny noise filter for trackpads
-    if (Math.abs(rawDelta) < 2) return;
+      // Clamp per-frame delta to max
+      const clampedDelta = Math.max(-MAX_WHEEL_DELTA, Math.min(MAX_WHEEL_DELTA, normalizedDelta));
+      
+      // Reduce sensitivity for small deltas (trackpads)
+      const sensitivity = Math.abs(clampedDelta) < 10 ? WHEEL_SENSITIVITY * 0.5 : WHEEL_SENSITIVITY;
+      const adjustedDelta = clampedDelta * sensitivity;
 
-    // Clamp delta to [-100, 100] for normalization
-    const clampedDelta = Math.max(-100, Math.min(100, rawDelta));
+      // Accumulate into pending delta
+      pendingWheelDeltaRef.current += adjustedDelta;
 
-    // Convert to small zoom step
-    const zoomStep = -clampedDelta * 0.001;
+      // Start rAF loop if not already running
+      if (rafIdRef.current === null) {
+        const tick = () => {
+          const delta = pendingWheelDeltaRef.current;
+          
+          if (Math.abs(delta) > 0.01) {
+            // Convert pixel delta to longitude offset
+            const lonDelta = (delta / globeRadiusX) * 180;
+            
+            // Update globeLonOffset with functional setState to avoid stale closures
+            setGlobeLonOffset((prev) => {
+              let newOffset = prev - lonDelta; // Negative because scrolling right should rotate left
+              while (newOffset > 180) newOffset -= 360;
+              while (newOffset < -180) newOffset += 360;
+              return newOffset;
+            });
+            
+            // Decay the pending delta
+            pendingWheelDeltaRef.current *= 0.7;
+            
+            rafIdRef.current = requestAnimationFrame(tick);
+          } else {
+            // Reset when delta is small enough
+            pendingWheelDeltaRef.current = 0;
+            rafIdRef.current = null;
+          }
+        };
+        rafIdRef.current = requestAnimationFrame(tick);
+      }
+    }
 
-    // Apply zoom with smooth easing
-    setZoom((prev) => {
-      const target = Math.max(minZoom, Math.min(maxZoom, prev + zoomStep));
-      const smoothed = prev + (target - prev) * 0.3;
-      const clamped = Math.max(minZoom, Math.min(maxZoom, smoothed));
-      setUserHasZoomed(true);
-      return clamped;
-    });
+    // Handle vertical scrolling for zoom (keep existing zoom behavior)
+    const rawDeltaY = e.deltaY;
+    if (Math.abs(rawDeltaY) > 0 && Math.abs(rawDeltaX) < Math.abs(rawDeltaY)) {
+      // Tiny noise filter for trackpads
+      if (Math.abs(rawDeltaY) < 2) return;
+
+      // Clamp delta to [-100, 100] for normalization
+      const clampedDelta = Math.max(-100, Math.min(100, rawDeltaY));
+
+      // Convert to small zoom step
+      const zoomStep = -clampedDelta * 0.001;
+
+      // Apply zoom with smooth easing
+      setZoom((prev) => {
+        const target = Math.max(minZoom, Math.min(maxZoom, prev + zoomStep));
+        const smoothed = prev + (target - prev) * 0.3;
+        const clamped = Math.max(minZoom, Math.min(maxZoom, smoothed));
+        setUserHasZoomed(true);
+        return clamped;
+      });
+    }
   };
 
   // Raw projection (no normalization) - projects lat/lon to x/y in world space
@@ -343,7 +489,14 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
         width="100%"
         height="100%"
         viewBox={`0 0 ${width} ${height}`}
-        style={{ display: "block", cursor: isDragging ? "grabbing" : "grab" }}
+        style={{
+          display: "block",
+          cursor,
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          WebkitUserDrag: "none",
+          touchAction: "none",
+        } as React.CSSProperties & { WebkitUserDrag?: string; touchAction?: string }}
         className="transition-colors duration-300"
         onWheel={handleWheel}
         onPointerDown={handlePointerDown}
@@ -365,7 +518,7 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
               transform: `translate(${centerX}px, ${centerY}px) scale(${zoom}) translate(${-centerX + cameraX}px, ${-centerY}px)`,
               transformOrigin: "0 0",
             }}
-            className="transition-transform duration-500 ease-out"
+            className={cursor === "grabbing" ? "" : "transition-transform duration-500 ease-out"}
           >
             {/* World country outlines (3 copies for wrapping) */}
             {xShifts.map((xShift) => (
