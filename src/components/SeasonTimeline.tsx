@@ -14,7 +14,7 @@ export default function SeasonTimeline({
   onSelectRace,
 }: SeasonTimelineProps) {
   return (
-    <div className="w-full py-8" style={{ backgroundColor: "var(--background)" }}>
+    <div className="w-full py-8" style={{ backgroundColor: "var(--bg-primary)" }}>
       <div className="relative mx-auto max-w-7xl px-4">
         {/* Timeline line */}
         <div
@@ -37,11 +37,11 @@ export default function SeasonTimeline({
                   className="h-3 w-3 rounded-full transition-all duration-300"
                   style={{
                     backgroundColor: isSelected
-                      ? "var(--f1-primary)"
-                      : "var(--f1-secondary)",
+                      ? "var(--accent-primary)"
+                      : "var(--accent-muted)",
                     transform: isSelected ? "scale(1.5)" : "scale(1)",
                     boxShadow: isSelected
-                      ? "0 0 0 2px var(--background), 0 0 0 4px var(--f1-primary)"
+                      ? "0 0 0 2px var(--bg-primary), 0 0 0 4px var(--accent-primary)"
                       : "none",
                   }}
                 />

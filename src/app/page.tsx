@@ -5,7 +5,7 @@ import { races2026 } from "@/data/races-2026";
 import ThemeToggle from "@/components/ThemeToggle";
 import GlobeMap from "@/components/GlobeMap";
 import SeasonTimeline from "@/components/SeasonTimeline";
-import RaceDetailPanel from "@/components/RaceDetailPanel";
+import RacePanel from "@/components/RacePanel";
 
 export default function Home() {
   // Step 2: Wire up selection state
@@ -21,7 +21,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen transition-colors duration-300" style={{ backgroundColor: "var(--background)" }}>
+    <div className="min-h-screen transition-colors duration-300" style={{ backgroundColor: "var(--bg-primary)" }}>
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
@@ -43,7 +43,7 @@ export default function Home() {
         </div>
 
         {/* Hero: Globe/Map view */}
-        <div className="mb-8 overflow-hidden rounded-lg border transition-colors duration-300" style={{ borderColor: "var(--card-border)", minHeight: "600px" }}>
+        <div className="mb-8 overflow-hidden rounded-lg border transition-colors duration-300" style={{ borderColor: "var(--border-subtle)", minHeight: "600px" }}>
           <GlobeMap
             races={races2026}
             selectedRaceId={selectedRaceId}
@@ -51,9 +51,9 @@ export default function Home() {
           />
         </div>
 
-        {/* Detail panel */}
+        {/* Race panel */}
         <div className="mb-8">
-          <RaceDetailPanel race={selectedRace} />
+          <RacePanel race={selectedRace} />
         </div>
 
         {/* Timeline scrubber */}

@@ -307,9 +307,9 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
   }, [races]);
 
   return (
-    <div className="relative w-full" style={{ backgroundColor: "var(--background)" }}>
+    <div className="relative w-full" style={{ backgroundColor: "var(--bg-primary)" }}>
       {/* Zoom controls overlay */}
-      <div className="absolute right-4 top-4 z-10 flex flex-col gap-2 rounded-lg border p-2 transition-colors duration-300" style={{ backgroundColor: "var(--card-bg)", borderColor: "var(--card-border)" }}>
+      <div className="absolute right-4 top-4 z-10 flex flex-col gap-2 rounded-lg border p-2 transition-colors duration-300" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-subtle)" }}>
         <button
           onClick={() => setZoomClamped(zoom + 0.2)}
           className="px-3 py-1 text-sm font-medium transition-colors duration-300 hover:opacity-80"
@@ -375,9 +375,9 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
                     key={`${countryPath.id}-${index}-${xShift}`}
                     d={countryPath.path}
                     fill="none"
-                    stroke="var(--text-secondary)"
-                    strokeOpacity={0.12}
-                    strokeWidth={0.8}
+                    stroke="var(--map-outline)"
+                    strokeWidth={0.7}
+                    strokeOpacity={0.3}
                     className="transition-colors duration-300"
                   />
                 ))}
@@ -396,9 +396,9 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
                       key={`${arc.fromRound}-${arc.toRound}-${xShift}`}
                       d={arc.path}
                       fill="none"
-                      stroke={isAdjacent ? "var(--f1-primary)" : "var(--f1-secondary)"}
+                      stroke={isAdjacent ? "var(--map-arc-active)" : "var(--map-arc-muted)"}
                       strokeWidth={isAdjacent ? 2 : 1.5}
-                      opacity={isAdjacent ? 0.6 : 0.25}
+                      opacity={isAdjacent ? 1 : 0.6}
                       className="transition-all duration-300"
                     />
                   );
@@ -422,12 +422,12 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
                       cx={x}
                       cy={y}
                       r={isSelected ? 8 : 5}
-                      fill={isSelected ? "var(--f1-primary)" : "var(--f1-secondary)"}
-                      stroke="var(--background)"
+                      fill={isSelected ? "var(--accent-primary)" : "var(--accent-muted)"}
+                      stroke="var(--bg-primary)"
                       strokeWidth={isSelected ? 3 : 2}
                       className={isSelected ? "transition-all duration-300" : "transition-all duration-300 cursor-pointer"}
                       style={{
-                        filter: isSelected ? "drop-shadow(0 0 4px var(--f1-primary))" : "none",
+                        filter: isSelected ? "drop-shadow(0 0 4px var(--accent-primary))" : "none",
                       }}
                       onClick={() => onSelectRace?.(race.round)}
                       onPointerDown={(e) => e.stopPropagation()}
@@ -446,9 +446,10 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
           rx={globeRadiusX}
           ry={globeRadiusY}
           fill="none"
-          stroke="var(--text-secondary)"
-          strokeWidth={2}
-          opacity={0.3}
+          stroke="var(--map-outline)"
+          strokeWidth={0.7}
+          strokeOpacity={0.3}
+          className="transition-colors duration-300"
         />
       </svg>
     </div>

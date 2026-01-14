@@ -10,7 +10,7 @@ export default function ThemeToggle() {
       onClick={toggleTheme}
       className="rounded-full p-2 transition-colors hover:bg-opacity-80"
       style={{
-        backgroundColor: theme === "light" ? "#b10413" : "#d44c5c",
+        backgroundColor: "var(--accent-primary)",
         color: "white",
       }}
       aria-label="Toggle theme"

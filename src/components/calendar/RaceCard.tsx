@@ -24,7 +24,7 @@ export default function RaceCard({ race }: RaceCardProps) {
       {/* Hover intel breadcrumb */}
       <div
         className="absolute left-0 right-0 top-0 rounded-t-lg px-4 py-2 text-xs text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{ backgroundColor: "var(--f1-primary)" }}
+        style={{ backgroundColor: "var(--accent-primary)" }}
       >
         Calendar intel: {race.country}
         {race.format === "sprint" && " • Sprint weekend"}
@@ -42,7 +42,7 @@ export default function RaceCard({ race }: RaceCardProps) {
           {race.format === "sprint" && (
             <span
               className="rounded-full px-3 py-1 text-xs font-medium text-white transition-colors duration-300"
-              style={{ backgroundColor: "var(--f1-secondary)" }}
+              style={{ backgroundColor: "var(--accent-primary)" }}
             >
               Sprint
             </span>

@@ -1,63 +1,83 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   F1 2026 — Final Color Token System
+   Use ONLY semantic tokens in components (no raw hex in JSX)
+   ========================================================================== */
+
 :root {
-  --background: #deced0;
-  --foreground: #171717;
-  --f1-primary: #b10413;
-  --f1-secondary: #dd1722;
-  --f1-secondary-2: #d44c5c;
-  --f1-accent: #be6a6e;
-  --f1-accent-2: #613b44;
-  --card-bg: #ffffff;
-  --card-border: #be6a6e;
-  --text-primary: #b10413;
-  --text-secondary: #613b44;
+  /* Backgrounds */
+  --bg-primary: #ede3e1; /* main page */
+  --bg-surface: #ffffff; /* cards/panels */
+  --bg-muted: #f6f0ef; /* subtle sections/hover fills */
+
+  /* Text */
+  --text-primary: #1f1f1f; /* near-black */
+  --text-secondary: #6f6a69; /* muted body */
+  --text-tertiary: #9a9493; /* labels/meta */
+
+  /* Borders / Structure */
+  --border-subtle: #d6cfcd; /* dividers */
+  --border-strong: #bfb7b5; /* active containers */
+
+  /* Accent (F1) */
+  --accent-primary: #c30000; /* F1 red (use sparingly) */
+  --accent-muted: #e6b3b3; /* inactive/adjacent states */
+
+  /* Map / Data */
+  --map-land: #cfc7c5; /* country outlines */
+  --map-outline: #1f1f1f; /* country boundary lines (charcoal) */
+  --map-graticule: #1f1f1f; /* globe outline (near-black) */
+  --map-arc-muted: #e2a3a3; /* non-active travel arcs */
+  --map-arc-active: #c30000; /* active travel arc */
 }
 
-.dark {
-  --background: #1a0f11;
-  --foreground: #deced0;
-  --f1-primary: #d44c5c;
-  --f1-secondary: #dd1722;
-  --f1-secondary-2: #b10413;
-  --f1-accent: #613b44;
-  --f1-accent-2: #be6a6e;
-  --card-bg: #2a1a1d;
-  --card-border: #613b44;
-  --text-primary: #d44c5c;
-  --text-secondary: #be6a6e;
+/* Optional: dark mode values (keep token names the same) */
+[data-theme="dark"] {
+  --bg-primary: #121212;
+  --bg-surface: #1a1a1a;
+  --bg-muted: #161616;
+
+  --text-primary: #f2f2f2;
+  --text-secondary: #b8b2b1;
+  --text-tertiary: #8e8a89;
+
+  --border-subtle: #2a2a2a;
+  --border-strong: #3a3a3a;
+
+  --accent-primary: #ff2a2a;
+  --accent-muted: #5a2a2a;
+
+  --map-land: #2e2e2e;
+  --map-outline: #e0e0e0; /* country boundary lines (light charcoal for dark mode) */
+  --map-graticule: #e0e0e0; /* globe outline (light for dark mode) */
+  --map-arc-muted: #6a3a3a;
+  --map-arc-active: #ff2a2a;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-f1-primary: var(--f1-primary);
-  --color-f1-secondary: var(--f1-secondary);
-  --color-f1-secondary-2: var(--f1-secondary-2);
-  --color-f1-accent: var(--f1-accent);
-  --color-f1-accent-2: var(--f1-accent-2);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-family: Arial, Helvetica, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .race-card {
-  border-color: var(--card-border);
-  background-color: var(--card-bg);
+  border-color: var(--border-subtle);
+  background-color: var(--bg-surface);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .race-card:hover {
-  box-shadow: 0 10px 15px -3px rgba(177, 4, 19, 0.1), 0 4px 6px -2px rgba(177, 4, 19, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(195, 0, 0, 0.1), 0 4px 6px -2px rgba(195, 0, 0, 0.05);
 }
 
-.dark .race-card:hover {
-  box-shadow: 0 10px 15px -3px rgba(212, 76, 92, 0.2), 0 4px 6px -2px rgba(212, 76, 92, 0.1);
+[data-theme="dark"] .race-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(255, 42, 42, 0.2), 0 4px 6px -2px rgba(255, 42, 42, 0.1);
 }
