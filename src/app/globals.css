@@ -8,7 +8,7 @@
 :root {
   /* Backgrounds */
   --bg-primary: #ede3e1; /* main page */
-  --bg-surface: #ffffff; /* cards/panels */
+  --bg-surface: #e0c8c4; /* cards/panels - darker red-tinted beige */
   --bg-muted: #f6f0ef; /* subtle sections/hover fills */
 
   /* Text */
