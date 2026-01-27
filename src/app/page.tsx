@@ -2,22 +2,33 @@
 
 import { useState, useMemo } from "react";
 import { races2026 } from "@/data/races-2026";
+import { testingEvents2026 } from "@/data/testing-events-2026";
+import { calendarEvents2026 } from "@/data/calendar-events-2026";
+import type { CalendarEvent } from "@/types/race";
 import ThemeToggle from "@/components/ThemeToggle";
 import GlobeMap from "@/components/GlobeMap";
 import SeasonTimeline from "@/components/SeasonTimeline";
 import RacePanel from "@/components/RacePanel";
 
 export default function Home() {
-  // Step 2: Wire up selection state
-  const [selectedRaceId, setSelectedRaceId] = useState<number>(races2026[0]?.round || 1);
-
-  const selectedRace = useMemo(
-    () => races2026.find((race) => race.round === selectedRaceId) || null,
-    [selectedRaceId]
+  // Selection state: can be a race round (number) or testing code (string like "T1")
+  const [selectedEventId, setSelectedEventId] = useState<number | string>(
+    races2026[0]?.round || 1
   );
 
-  const handleSelectRace = (round: number) => {
-    setSelectedRaceId(round);
+  const selectedEvent = useMemo(
+    () => {
+      if (typeof selectedEventId === "number") {
+        return races2026.find((race) => race.round === selectedEventId) || null;
+      } else {
+        return testingEvents2026.find((test) => test.code === selectedEventId) || null;
+      }
+    },
+    [selectedEventId]
+  );
+
+  const handleSelectEvent = (id: number | string) => {
+    setSelectedEventId(id);
   };
 
   return (
@@ -37,7 +48,7 @@ export default function Home() {
               rhythm of the calendar.
             </p>
             <div className="text-sm transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
-              {races2026.length} races loaded
+              {races2026.length} races, {testingEvents2026.length} testing events
             </div>
           </div>
         </div>
@@ -46,21 +57,22 @@ export default function Home() {
         <div className="mb-8 overflow-hidden rounded-lg border transition-colors duration-300" style={{ borderColor: "var(--border-subtle)", minHeight: "600px" }}>
           <GlobeMap
             races={races2026}
-            selectedRaceId={selectedRaceId}
-            onSelectRace={handleSelectRace}
+            testingEvents={testingEvents2026}
+            selectedEventId={selectedEventId}
+            onSelectEvent={handleSelectEvent}
           />
         </div>
 
-        {/* Race panel */}
+        {/* Event panel */}
         <div className="mb-8">
-          <RacePanel race={selectedRace} />
+          <RacePanel event={selectedEvent} />
         </div>
 
         {/* Timeline scrubber */}
         <SeasonTimeline
-          races={races2026}
-          selectedRaceId={selectedRaceId}
-          onSelectRace={handleSelectRace}
+          events={calendarEvents2026}
+          selectedEventId={selectedEventId}
+          onSelectEvent={handleSelectEvent}
         />
       </main>
     </div>

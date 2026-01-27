@@ -11,6 +11,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-03-06",
     timeZone: "Australia/Melbourne",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 2,
@@ -22,6 +23,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-03-13",
     timeZone: "Asia/Shanghai",
     format: "sprint",
+    eventType: "race",
   },
   {
     round: 3,
@@ -33,6 +35,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-03-27",
     timeZone: "Asia/Tokyo",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 4,
@@ -44,6 +47,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-04-10",
     timeZone: "Asia/Bahrain",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 5,
@@ -55,6 +59,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-04-17",
     timeZone: "Asia/Riyadh",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 6,
@@ -66,6 +71,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-05-01",
     timeZone: "America/New_York",
     format: "sprint",
+    eventType: "race",
   },
   {
     round: 7,
@@ -77,6 +83,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-05-22",
     timeZone: "America/Montreal",
     format: "sprint",
+    eventType: "race",
   },
   {
     round: 8,
@@ -88,6 +95,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-06-05",
     timeZone: "Europe/Monaco",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 9,
@@ -99,6 +107,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-06-12",
     timeZone: "Europe/Madrid",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 10,
@@ -110,6 +119,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-06-26",
     timeZone: "Europe/Vienna",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 11,
@@ -121,6 +131,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-07-03",
     timeZone: "Europe/London",
     format: "sprint",
+    eventType: "race",
   },
   {
     round: 12,
@@ -132,6 +143,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-07-17",
     timeZone: "Europe/Brussels",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 13,
@@ -143,6 +155,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-07-24",
     timeZone: "Europe/Budapest",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 14,
@@ -154,6 +167,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-08-21",
     timeZone: "Europe/Amsterdam",
     format: "sprint",
+    eventType: "race",
   },
   {
     round: 15,
@@ -165,6 +179,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-09-04",
     timeZone: "Europe/Rome",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 16,
@@ -176,6 +191,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-09-11",
     timeZone: "Europe/Madrid",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 17,
@@ -187,6 +203,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-09-24",
     timeZone: "Asia/Baku",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 18,
@@ -198,6 +215,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-10-09",
     timeZone: "Asia/Singapore",
     format: "sprint",
+    eventType: "race",
   },
   {
     round: 19,
@@ -209,6 +227,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-10-23",
     timeZone: "America/Chicago",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 20,
@@ -220,6 +239,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-10-30",
     timeZone: "America/Mexico_City",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 21,
@@ -231,6 +251,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-11-06",
     timeZone: "America/Sao_Paulo",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 22,
@@ -242,6 +263,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-11-19",
     timeZone: "America/Los_Angeles",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 23,
@@ -253,6 +275,7 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-11-27",
     timeZone: "Asia/Qatar",
     format: "standard",
+    eventType: "race",
   },
   {
     round: 24,
@@ -264,5 +287,6 @@ export const races2026: Race[] = [
     weekendStartDate: "2026-12-04",
     timeZone: "Asia/Dubai",
     format: "standard",
+    eventType: "race",
   },
 ];

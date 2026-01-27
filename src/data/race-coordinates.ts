@@ -1,6 +1,7 @@
 // TODO: Replace placeholder coordinates with accurate circuit coordinates
-// Temporary coordinate mapping for F1 2026 races
-// Format: { round: { lat: number, lon: number } }
+// Temporary coordinate mapping for F1 2026 races and testing events
+// Format: { round: { lat: number, lon: number } } for races
+// Format: { code: { lat: number, lon: number } } for testing events
 export const raceCoordinates: Record<number, { lat: number; lon: number }> = {
   1: { lat: -37.8497, lon: 144.968 }, // Melbourne, Australia
   2: { lat: 31.3389, lon: 121.22 }, // Shanghai, China
@@ -26,4 +27,11 @@ export const raceCoordinates: Record<number, { lat: number; lon: number }> = {
   22: { lat: 36.1147, lon: -115.1728 }, // Las Vegas, USA
   23: { lat: 25.49, lon: 51.4542 }, // Lusail, Qatar
   24: { lat: 24.4672, lon: 54.6031 }, // Yas Island, UAE
+};
+
+// Testing event coordinates
+export const testingCoordinates: Record<string, { lat: number; lon: number }> = {
+  T1: { lat: 41.57, lon: 2.2611 }, // Barcelona, Spain
+  T2: { lat: 26.0325, lon: 50.5106 }, // Sakhir, Bahrain
+  T3: { lat: 26.0325, lon: 50.5106 }, // Sakhir, Bahrain
 };

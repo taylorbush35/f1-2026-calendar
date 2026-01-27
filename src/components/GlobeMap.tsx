@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
-import type { Race } from "@/types/race";
-import { raceCoordinates } from "@/data/race-coordinates";
+import type { Race, TestingEvent } from "@/types/race";
+import { raceCoordinates, testingCoordinates } from "@/data/race-coordinates";
 import { worldCountries110m } from "@/data/world-countries-110m";
 
 interface GlobeMapProps {
   races: Race[];
-  selectedRaceId?: number;
-  onSelectRace?: (round: number) => void;
+  testingEvents: TestingEvent[];
+  selectedEventId?: number | string;
+  onSelectEvent?: (id: number | string) => void;
 }
 
 interface ArcPath {
@@ -17,7 +18,7 @@ interface ArcPath {
   toRound: number;
 }
 
-export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeMapProps) {
+export default function GlobeMap({ races, testingEvents, selectedEventId, onSelectEvent }: GlobeMapProps) {
   // SVG dimensions
   const width = 1000;
   const height = 600;
@@ -84,13 +85,15 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
     };
   }, []);
 
-  // Animate globe offset to selected race's longitude (shortest rotation)
+  // Animate globe offset to selected event's longitude (shortest rotation)
   useEffect(() => {
     // Don't animate if user is dragging
     if (isDraggingRef.current) return;
 
-    if (!selectedRaceId) return;
-    const targetCoords = raceCoordinates[selectedRaceId];
+    if (!selectedEventId) return;
+    const targetCoords = typeof selectedEventId === "number" 
+      ? raceCoordinates[selectedEventId]
+      : testingCoordinates[selectedEventId];
     if (!targetCoords) return;
 
     const targetLon = targetCoords.lon;
@@ -124,12 +127,14 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
       clearInterval(interval);
       animationIntervalRef.current = null;
     };
-  }, [selectedRaceId, globeLonOffset]);
+  }, [selectedEventId, globeLonOffset]);
 
   // Auto-zoom for European races (if user hasn't manually zoomed)
   useEffect(() => {
-    if (!selectedRaceId || userHasZoomed) return;
-    const targetCoords = raceCoordinates[selectedRaceId];
+    if (!selectedEventId || userHasZoomed) return;
+    const targetCoords = typeof selectedEventId === "number"
+      ? raceCoordinates[selectedEventId]
+      : testingCoordinates[selectedEventId];
     if (!targetCoords) return;
 
     // Check if race is in Europe (lat ~ 35-60, lon ~ -15-40)
@@ -137,7 +142,7 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
     if (lat >= 35 && lat <= 60 && lon >= -15 && lon <= 40) {
       setZoom(1.6);
     }
-  }, [selectedRaceId, userHasZoomed]);
+  }, [selectedEventId, userHasZoomed]);
 
   // Helper to normalize longitude offset
   const normalizeOffset = (offset: number): number => {
@@ -542,7 +547,7 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
               <g key={`arcs-${xShift}`} transform={`translate(${xShift}, 0)`}>
                 {arcPaths.map((arc) => {
                   const isAdjacent =
-                    arc.fromRound === selectedRaceId || arc.toRound === selectedRaceId;
+                    (typeof selectedEventId === "number" && (arc.fromRound === selectedEventId || arc.toRound === selectedEventId));
 
                   return (
                     <path
@@ -567,12 +572,12 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
                   if (!coords) return null;
 
                   const { x, y } = projectPointRaw(coords.lat, coords.lon);
-                  const isSelected = selectedRaceId === race.round;
+                  const isSelected = selectedEventId === race.round;
 
                   return (
                     <g
                       key={`${race.round}-${xShift}`}
-                      onClick={() => onSelectRace?.(race.round)}
+                      onClick={() => onSelectEvent?.(race.round)}
                       onPointerDown={(e) => e.stopPropagation()}
                       className="cursor-pointer transition-all duration-300"
                     >
@@ -605,6 +610,82 @@ export default function GlobeMap({ races, selectedRaceId, onSelectRace }: GlobeM
                     </g>
                   );
                 })}
+                
+                {/* Testing event nodes (grouped by location) */}
+                {(() => {
+                  // Group testing events by coordinates
+                  const groupedByLocation = new Map<string, typeof testingEvents>();
+                  
+                  testingEvents.forEach((test) => {
+                    const coords = testingCoordinates[test.code];
+                    if (!coords) return;
+                    
+                    // Create a location key from coordinates (rounded to avoid floating point issues)
+                    const locationKey = `${Math.round(coords.lat * 10000)}_${Math.round(coords.lon * 10000)}`;
+                    
+                    if (!groupedByLocation.has(locationKey)) {
+                      groupedByLocation.set(locationKey, []);
+                    }
+                    groupedByLocation.get(locationKey)!.push(test);
+                  });
+
+                  // Render grouped markers
+                  return Array.from(groupedByLocation.entries()).map(([locationKey, events]) => {
+                    const coords = testingCoordinates[events[0].code];
+                    if (!coords) return null;
+
+                    const { x, y } = projectPointRaw(coords.lat, coords.lon);
+                    
+                    // Generate combined label: if multiple events, combine codes (e.g., "T2–3")
+                    const label = events.length > 1
+                      ? `${events[0].code}–${events[events.length - 1].code.slice(1)}` // "T2–3" from ["T2", "T3"]
+                      : events[0].code; // Single event, use code as-is
+                    
+                    // Check if any event in the group is selected
+                    const isSelected = events.some(test => selectedEventId === test.code);
+                    
+                    // When clicked, select the first event in the group
+                    const primaryEventCode = events[0].code;
+
+                    return (
+                      <g
+                        key={`testing-${locationKey}-${xShift}`}
+                        onClick={() => onSelectEvent?.(primaryEventCode)}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className="cursor-pointer transition-all duration-300"
+                      >
+                        <circle
+                          cx={x}
+                          cy={y}
+                          r={isSelected ? 7 : 4.5}
+                          fill={isSelected ? "var(--accent-primary)" : "var(--accent-muted)"}
+                          stroke="var(--bg-primary)"
+                          strokeWidth={isSelected ? 2.5 : 1.5}
+                          strokeOpacity={0.8}
+                          style={{
+                            filter: isSelected ? "drop-shadow(0 0 3px var(--accent-primary))" : "none",
+                            opacity: 0.85,
+                          }}
+                        />
+                        <text
+                          x={x}
+                          y={y}
+                          fontSize={events.length > 1 ? (isSelected ? 5 : 4) : (isSelected ? 6 : 5)}
+                          fontWeight="bold"
+                          fill="white"
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          style={{
+                            pointerEvents: "none",
+                            userSelect: "none",
+                          }}
+                        >
+                          {label}
+                        </text>
+                      </g>
+                    );
+                  });
+                })()}
               </g>
             ))}
           </g>

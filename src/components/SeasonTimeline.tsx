@@ -1,17 +1,17 @@
 "use client";
 
-import type { Race } from "@/types/race";
+import type { CalendarEvent } from "@/types/race";
 
 interface SeasonTimelineProps {
-  races: Race[];
-  selectedRaceId?: number;
-  onSelectRace?: (round: number) => void;
+  events: CalendarEvent[];
+  selectedEventId?: number | string;
+  onSelectEvent?: (id: number | string) => void;
 }
 
 export default function SeasonTimeline({
-  races,
-  selectedRaceId,
-  onSelectRace,
+  events,
+  selectedEventId,
+  onSelectEvent,
 }: SeasonTimelineProps) {
   return (
     <div className="w-full py-8" style={{ backgroundColor: "var(--bg-primary)" }}>
@@ -24,17 +24,24 @@ export default function SeasonTimeline({
 
         {/* Timeline dots */}
         <div className="relative flex items-center justify-between">
-          {races.map((race) => {
-            const isSelected = selectedRaceId === race.round;
+          {events.map((event) => {
+            const eventId = event.eventType === "race" ? event.round : event.code;
+            const isSelected = selectedEventId === eventId;
+            const label = event.eventType === "race" 
+              ? `Round ${event.round}: ${event.raceName}`
+              : `${event.code}: ${event.eventName}`;
+            
             return (
               <button
-                key={race.round}
-                onClick={() => onSelectRace?.(race.round)}
+                key={event.eventType === "race" ? event.round : event.code}
+                onClick={() => onSelectEvent?.(eventId)}
                 className="relative z-10 flex flex-col items-center transition-all duration-300 hover:scale-110"
-                aria-label={`Select round ${race.round}: ${race.raceName}`}
+                aria-label={label}
               >
                 <div
-                  className="h-3 w-3 rounded-full transition-all duration-300"
+                  className={`rounded-full transition-all duration-300 ${
+                    event.eventType === "testing" ? "h-2.5 w-2.5" : "h-3 w-3"
+                  }`}
                   style={{
                     backgroundColor: isSelected
                       ? "var(--accent-primary)"
@@ -43,6 +50,7 @@ export default function SeasonTimeline({
                     boxShadow: isSelected
                       ? "0 0 0 2px var(--bg-primary), 0 0 0 4px var(--accent-primary)"
                       : "none",
+                    opacity: event.eventType === "testing" ? 0.85 : 1,
                   }}
                 />
               </button>

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import type { Race } from "@/types/race";
+import type { CalendarEvent, Race } from "@/types/race";
 
 interface RacePanelProps {
-  race: Race | null;
+  event: CalendarEvent | null;
 }
 
 // Helper to determine race badges based on race properties
@@ -35,10 +35,10 @@ function getRaceBadges(race: Race): string[] {
   return badges;
 }
 
-export default function RacePanel({ race }: RacePanelProps) {
+export default function RacePanel({ event }: RacePanelProps) {
   const [isHovered, setIsHovered] = useState(false);
   
-  if (!race) {
+  if (!event) {
     return null;
   }
 
@@ -52,7 +52,13 @@ export default function RacePanel({ race }: RacePanelProps) {
     });
   };
 
-  const badges = getRaceBadges(race);
+  const formatDateRange = (startDate: string, endDate: string): string => {
+    const start = formatDate(startDate);
+    const end = formatDate(endDate);
+    return `${start} – ${end}`;
+  };
+
+  const badges = event.eventType === "race" ? getRaceBadges(event) : [];
 
   return (
     <div
@@ -91,14 +97,31 @@ export default function RacePanel({ race }: RacePanelProps) {
 
       {/* Content */}
       <div className="relative pl-6">
-        {/* Round label and Badges */}
+        {/* Round/Code label and Badges */}
         <div className="mb-1 flex items-center gap-3">
           <div
             className="text-xs font-medium uppercase tracking-wide transition-colors duration-300"
             style={{ color: "var(--text-tertiary)" }}
           >
-            Round {race.round}
+            {event.eventType === "race" ? `Round ${event.round}` : event.code}
           </div>
+          
+          {event.eventType === "testing" && (
+            <span
+              className="rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide transition-all duration-[180ms] ease-out"
+              style={{
+                borderColor: "var(--accent-primary)",
+                color: "var(--accent-primary)",
+                backgroundColor: "transparent",
+                boxShadow: isHovered 
+                  ? "0 0 0 1px var(--accent-primary), 0 0 8px rgba(195, 0, 0, 0.2)" 
+                  : "none",
+                opacity: isHovered ? 1 : 0.9,
+              }}
+            >
+              Pre-Season Testing
+            </span>
+          )}
           
           {/* Badge cluster */}
           {badges.length > 0 && (
@@ -135,7 +158,7 @@ export default function RacePanel({ race }: RacePanelProps) {
           className="mb-3 text-3xl font-bold tracking-tight transition-colors duration-300"
           style={{ color: "var(--text-primary)" }}
         >
-          {race.raceName}
+          {event.eventType === "race" ? event.raceName : event.eventName}
         </h2>
 
         {/* Subhead: Circuit · Location */}
@@ -143,8 +166,8 @@ export default function RacePanel({ race }: RacePanelProps) {
           className="mb-4 text-lg transition-colors duration-300"
           style={{ color: "var(--text-secondary)" }}
         >
-          {race.circuitName} · {race.city && `${race.city}, `}
-          {race.country}
+          {event.circuitName} · {event.city && `${event.city}, `}
+          {event.country}
         </p>
 
         {/* Date */}
@@ -152,7 +175,10 @@ export default function RacePanel({ race }: RacePanelProps) {
           className="text-sm transition-colors duration-300"
           style={{ color: "var(--text-tertiary)" }}
         >
-          {formatDate(race.raceDate)}
+          {event.eventType === "race" 
+            ? formatDate(event.raceDate)
+            : formatDateRange(event.startDate, event.endDate)
+          }
         </p>
       </div>
     </div>
