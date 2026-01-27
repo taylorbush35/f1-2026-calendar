@@ -65,7 +65,11 @@ export default function Home() {
 
         {/* Event panel */}
         <div className="mb-8">
-          <RacePanel event={selectedEvent} />
+          <RacePanel 
+            event={selectedEvent} 
+            allEvents={calendarEvents2026}
+            onNavigate={handleSelectEvent}
+          />
         </div>
 
         {/* Timeline scrubber */}

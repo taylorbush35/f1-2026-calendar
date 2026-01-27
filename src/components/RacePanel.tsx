@@ -5,6 +5,8 @@ import type { CalendarEvent, Race } from "@/types/race";
 
 interface RacePanelProps {
   event: CalendarEvent | null;
+  allEvents?: CalendarEvent[];
+  onNavigate?: (eventId: number | string) => void;
 }
 
 // Helper to determine race badges based on race properties
@@ -35,12 +37,40 @@ function getRaceBadges(race: Race): string[] {
   return badges;
 }
 
-export default function RacePanel({ event }: RacePanelProps) {
+export default function RacePanel({ event, allEvents = [], onNavigate }: RacePanelProps) {
   const [isHovered, setIsHovered] = useState(false);
   
   if (!event) {
     return null;
   }
+
+  // Find current event index and determine prev/next
+  const currentIndex = allEvents.findIndex((e) => {
+    if (e.eventType === "race" && event.eventType === "race") {
+      return e.round === event.round;
+    }
+    if (e.eventType === "testing" && event.eventType === "testing") {
+      return e.code === event.code;
+    }
+    return false;
+  });
+
+  const hasPrevious = currentIndex > 0;
+  const hasNext = currentIndex < allEvents.length - 1;
+
+  const handlePrevious = () => {
+    if (!hasPrevious || !onNavigate) return;
+    const prevEvent = allEvents[currentIndex - 1];
+    const prevId = prevEvent.eventType === "race" ? prevEvent.round : prevEvent.code;
+    onNavigate(prevId);
+  };
+
+  const handleNext = () => {
+    if (!hasNext || !onNavigate) return;
+    const nextEvent = allEvents[currentIndex + 1];
+    const nextId = nextEvent.eventType === "race" ? nextEvent.round : nextEvent.code;
+    onNavigate(nextId);
+  };
 
   const formatDate = (dateString: string): string => {
     const [year, month, day] = dateString.split("-").map(Number);
@@ -74,6 +104,92 @@ export default function RacePanel({ event }: RacePanelProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Navigation arrows */}
+      {onNavigate && (
+        <>
+          {/* Left arrow */}
+          <button
+            onClick={handlePrevious}
+            disabled={!hasPrevious}
+            className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: hasPrevious ? "rgba(195, 0, 0, 0.08)" : "transparent",
+              color: "var(--accent-primary)",
+              opacity: hasPrevious ? 1 : 0.3,
+            }}
+            onMouseEnter={(e) => {
+              if (hasPrevious) {
+                e.currentTarget.style.backgroundColor = "rgba(195, 0, 0, 0.15)";
+                e.currentTarget.style.transform = "scale(1.1)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (hasPrevious) {
+                e.currentTarget.style.backgroundColor = "rgba(195, 0, 0, 0.08)";
+                e.currentTarget.style.transform = "scale(1)";
+              }
+            }}
+            aria-label="Previous event"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.5 15L7.5 10L12.5 5"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
+          {/* Right arrow */}
+          <button
+            onClick={handleNext}
+            disabled={!hasNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: hasNext ? "rgba(195, 0, 0, 0.08)" : "transparent",
+              color: "var(--accent-primary)",
+              opacity: hasNext ? 1 : 0.3,
+            }}
+            onMouseEnter={(e) => {
+              if (hasNext) {
+                e.currentTarget.style.backgroundColor = "rgba(195, 0, 0, 0.15)";
+                e.currentTarget.style.transform = "scale(1.1)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (hasNext) {
+                e.currentTarget.style.backgroundColor = "rgba(195, 0, 0, 0.08)";
+                e.currentTarget.style.transform = "scale(1)";
+              }
+            }}
+            aria-label="Next event"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M7.5 5L12.5 10L7.5 15"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </>
+      )}
       {/* Left accent rail */}
       <div
         className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg transition-all duration-[180ms] ease-out"
