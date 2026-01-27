@@ -92,7 +92,7 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
 
   return (
     <div
-      className="group relative rounded-lg border px-8 py-6 transition-all duration-[180ms] ease-out"
+      className="group relative rounded-lg border px-4 py-4 sm:px-8 sm:py-6 transition-all duration-[180ms] ease-out"
       style={{
         backgroundColor: "var(--bg-surface)",
         borderColor: "var(--border-subtle)",
@@ -111,7 +111,7 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
           <button
             onClick={handlePrevious}
             disabled={!hasPrevious}
-            className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
             style={{
               backgroundColor: hasPrevious ? "rgba(195, 0, 0, 0.08)" : "transparent",
               color: "var(--accent-primary)",
@@ -132,8 +132,7 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
             aria-label="Previous event"
           >
             <svg
-              width="20"
-              height="20"
+              className="w-4 h-4 sm:w-5 sm:h-5"
               viewBox="0 0 20 20"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -152,7 +151,7 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
           <button
             onClick={handleNext}
             disabled={!hasNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
             style={{
               backgroundColor: hasNext ? "rgba(195, 0, 0, 0.08)" : "transparent",
               color: "var(--accent-primary)",
@@ -173,8 +172,7 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
             aria-label="Next event"
           >
             <svg
-              width="20"
-              height="20"
+              className="w-4 h-4 sm:w-5 sm:h-5"
               viewBox="0 0 20 20"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -212,7 +210,7 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
       />
 
       {/* Content */}
-      <div className="relative pl-6">
+      <div className="relative pl-4 sm:pl-6">
         {/* Round/Code label and Badges */}
         <div className="mb-1 flex items-center gap-3">
           <div
@@ -271,7 +269,7 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
 
         {/* Headline */}
         <h2
-          className="mb-3 text-3xl font-bold tracking-tight transition-colors duration-300"
+          className="mb-2 sm:mb-3 text-xl sm:text-2xl md:text-3xl font-bold tracking-tight transition-colors duration-300"
           style={{ color: "var(--text-primary)" }}
         >
           {event.eventType === "race" ? event.raceName : event.eventName}

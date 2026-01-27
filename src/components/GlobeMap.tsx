@@ -460,10 +460,10 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
   return (
     <div className="relative w-full" style={{ backgroundColor: "var(--bg-primary)" }}>
       {/* Zoom controls overlay */}
-      <div className="absolute right-4 top-4 z-10 flex flex-col gap-2 rounded-lg border p-2 transition-colors duration-300" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-subtle)" }}>
+      <div className="absolute right-2 top-2 sm:right-4 sm:top-4 z-10 flex flex-col gap-1 sm:gap-2 rounded-lg border p-1 sm:p-2 transition-colors duration-300" style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-subtle)" }}>
         <button
           onClick={() => setZoomClamped(zoom + 0.2)}
-          className="px-3 py-1 text-sm font-medium transition-colors duration-300 hover:opacity-80"
+          className="px-2 py-0.5 sm:px-3 sm:py-1 text-xs sm:text-sm font-medium transition-colors duration-300 hover:opacity-80"
           style={{ color: "var(--text-primary)" }}
           aria-label="Zoom in"
         >
@@ -471,7 +471,7 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
         </button>
         <button
           onClick={() => setZoomClamped(zoom - 0.2)}
-          className="px-3 py-1 text-sm font-medium transition-colors duration-300 hover:opacity-80"
+          className="px-2 py-0.5 sm:px-3 sm:py-1 text-xs sm:text-sm font-medium transition-colors duration-300 hover:opacity-80"
           style={{ color: "var(--text-primary)" }}
           aria-label="Zoom out"
         >
@@ -482,7 +482,7 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
             setZoom(1);
             setUserHasZoomed(true);
           }}
-          className="px-3 py-1 text-xs font-medium transition-colors duration-300 hover:opacity-80"
+          className="px-2 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-medium transition-colors duration-300 hover:opacity-80"
           style={{ color: "var(--text-secondary)" }}
           aria-label="Reset zoom"
         >
@@ -494,6 +494,7 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
         width="100%"
         height="100%"
         viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="xMidYMid meet"
         style={{
           display: "block",
           cursor,
@@ -501,6 +502,7 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
           WebkitUserSelect: "none",
           WebkitUserDrag: "none",
           touchAction: "none",
+          maxWidth: "100%",
         } as React.CSSProperties & { WebkitUserDrag?: string; touchAction?: string }}
         className="transition-colors duration-300"
         onWheel={handleWheel}

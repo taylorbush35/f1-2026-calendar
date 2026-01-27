@@ -33,38 +33,40 @@ export default function Home() {
 
   return (
     <div className="min-h-screen transition-colors duration-300" style={{ backgroundColor: "var(--bg-primary)" }}>
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="mb-4 flex items-center justify-between">
-            <h1 className="text-4xl font-bold transition-colors duration-300" style={{ color: "var(--text-primary)" }}>
+        <div className="mb-4 sm:mb-8">
+          <div className="mb-2 sm:mb-4 flex items-center justify-between gap-2">
+            <h1 className="text-2xl sm:text-4xl font-bold transition-colors duration-300" style={{ color: "var(--text-primary)" }}>
               F1 2026 Calendar
             </h1>
             <ThemeToggle />
           </div>
-          <div className="mb-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <p className="text-lg transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
+          <div className="mb-2 flex flex-col justify-between gap-2 sm:gap-4 sm:flex-row sm:items-end">
+            <p className="text-sm sm:text-lg transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
               A product-first view of the season — weekends, formats, and the
               rhythm of the calendar.
             </p>
-            <div className="text-sm transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
+            <div className="text-xs sm:text-sm transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
               {races2026.length} races, {testingEvents2026.length} testing events
             </div>
           </div>
         </div>
 
         {/* Hero: Globe/Map view */}
-        <div className="mb-8 overflow-hidden rounded-lg border transition-colors duration-300" style={{ borderColor: "var(--border-subtle)", minHeight: "600px" }}>
-          <GlobeMap
-            races={races2026}
-            testingEvents={testingEvents2026}
-            selectedEventId={selectedEventId}
-            onSelectEvent={handleSelectEvent}
-          />
+        <div className="mb-4 sm:mb-8 overflow-hidden rounded-lg border transition-colors duration-300" style={{ borderColor: "var(--border-subtle)" }}>
+          <div className="h-[280px] sm:h-[400px] md:h-[600px] w-full">
+            <GlobeMap
+              races={races2026}
+              testingEvents={testingEvents2026}
+              selectedEventId={selectedEventId}
+              onSelectEvent={handleSelectEvent}
+            />
+          </div>
         </div>
 
         {/* Event panel */}
-        <div className="mb-8">
+        <div className="mb-4 sm:mb-8">
           <RacePanel 
             event={selectedEvent} 
             allEvents={calendarEvents2026}

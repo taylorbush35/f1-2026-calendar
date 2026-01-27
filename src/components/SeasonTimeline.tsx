@@ -14,8 +14,8 @@ export default function SeasonTimeline({
   onSelectEvent,
 }: SeasonTimelineProps) {
   return (
-    <div className="w-full py-8" style={{ backgroundColor: "var(--bg-primary)" }}>
-      <div className="relative mx-auto max-w-7xl px-4">
+    <div className="w-full py-4 sm:py-8" style={{ backgroundColor: "var(--bg-primary)" }}>
+      <div className="relative mx-auto max-w-7xl px-2 sm:px-4">
         {/* Timeline line */}
         <div
           className="absolute left-4 right-4 top-1/2 h-0.5 -translate-y-1/2 transition-colors duration-300"
