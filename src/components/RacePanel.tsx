@@ -89,13 +89,15 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
   };
 
   const badges = event.eventType === "race" ? getRaceBadges(event) : [];
+  const isCanceledRace = event.eventType === "race" && event.canceled;
 
   return (
     <div
       className="group relative rounded-lg border px-4 py-4 sm:px-8 sm:py-6 transition-all duration-[180ms] ease-out"
       style={{
         backgroundColor: "var(--bg-surface)",
-        borderColor: "var(--border-subtle)",
+        borderColor: isCanceledRace ? "var(--accent-primary)" : "var(--border-subtle)",
+        borderWidth: isCanceledRace ? 2 : 1,
         boxShadow: isHovered
           ? "0 0 0 1px var(--border-subtle), 0 4px 12px 0 rgba(0, 0, 0, 0.12), 0 2px 4px 0 rgba(0, 0, 0, 0.08)"
           : "0 0 0 1px var(--border-subtle), 0 1px 3px 0 rgba(0, 0, 0, 0.05)",
@@ -237,16 +239,15 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
             </span>
           )}
 
-          {event.eventType === "race" && event.canceled && (
+          {isCanceledRace && (
             <span
-              className="rounded-full border px-2.5 py-0.5 text-xs font-semibold tracking-wide transition-all duration-[180ms] ease-out"
+              className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase leading-tight tracking-wide text-white sm:text-xs sm:px-3 sm:py-1.5"
               style={{
-                borderColor: "var(--border-strong)",
-                color: "var(--text-secondary)",
-                backgroundColor: "var(--bg-muted)",
+                backgroundColor: "var(--accent-primary)",
+                boxShadow: "0 2px 10px rgba(195, 0, 0, 0.45)",
               }}
             >
-              Canceled
+              Removed from calendar
             </span>
           )}
           
@@ -283,7 +284,11 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
         {/* Headline */}
         <h2
           className="mb-2 sm:mb-3 text-xl sm:text-2xl md:text-3xl font-bold tracking-tight transition-colors duration-300"
-          style={{ color: "var(--text-primary)" }}
+          style={{
+            color: isCanceledRace ? "var(--text-secondary)" : "var(--text-primary)",
+            textDecoration: isCanceledRace ? "line-through" : undefined,
+            opacity: isCanceledRace ? 0.75 : 1,
+          }}
         >
           {event.eventType === "race" ? event.raceName : event.eventName}
         </h2>
@@ -291,7 +296,11 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
         {/* Subhead: Circuit · Location */}
         <p
           className="mb-4 text-lg transition-colors duration-300"
-          style={{ color: "var(--text-secondary)" }}
+          style={{
+            color: "var(--text-secondary)",
+            textDecoration: isCanceledRace ? "line-through" : undefined,
+            opacity: isCanceledRace ? 0.7 : 1,
+          }}
         >
           {event.circuitName} · {event.city && `${event.city}, `}
           {event.country}
@@ -300,8 +309,17 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
         {/* Date */}
         <p
           className="text-sm transition-colors duration-300"
-          style={{ color: "var(--text-tertiary)" }}
+          style={{
+            color: "var(--text-tertiary)",
+            textDecoration: isCanceledRace ? "line-through" : undefined,
+            opacity: isCanceledRace ? 0.7 : 1,
+          }}
         >
+          {event.eventType === "race" && isCanceledRace && (
+            <span className="mr-2 font-medium" style={{ color: "var(--text-secondary)" }}>
+              Originally planned:
+            </span>
+          )}
           {event.eventType === "race" 
             ? formatDate(event.raceDate)
             : formatDateRange(event.startDate, event.endDate)
