@@ -12,6 +12,7 @@ export type Race = {
   timeZone?: string; // IANA tz string
   format: RaceWeekendFormat;
   eventType: "race"; // Always "race" for existing races
+  canceled?: boolean;
 };
 
 export type TestingEvent = {

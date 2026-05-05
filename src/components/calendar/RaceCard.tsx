@@ -47,6 +47,18 @@ export default function RaceCard({ race }: RaceCardProps) {
               Sprint
             </span>
           )}
+          {race.canceled && (
+            <span
+              className="rounded-full border px-3 py-1 text-xs font-semibold transition-colors duration-300"
+              style={{
+                borderColor: "var(--border-strong)",
+                color: "var(--text-secondary)",
+                backgroundColor: "var(--bg-muted)",
+              }}
+            >
+              Canceled
+            </span>
+          )}
         </div>
         <p className="mb-4 text-sm transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
           {race.circuitName}

@@ -236,6 +236,19 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
               Pre-Season Testing
             </span>
           )}
+
+          {event.eventType === "race" && event.canceled && (
+            <span
+              className="rounded-full border px-2.5 py-0.5 text-xs font-semibold tracking-wide transition-all duration-[180ms] ease-out"
+              style={{
+                borderColor: "var(--border-strong)",
+                color: "var(--text-secondary)",
+                backgroundColor: "var(--bg-muted)",
+              }}
+            >
+              Canceled
+            </span>
+          )}
           
           {/* Badge cluster */}
           {badges.length > 0 && (

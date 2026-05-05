@@ -48,6 +48,7 @@ export const races2026: Race[] = [
     timeZone: "Asia/Bahrain",
     format: "standard",
     eventType: "race",
+    canceled: true,
   },
   {
     round: 5,
@@ -60,6 +61,7 @@ export const races2026: Race[] = [
     timeZone: "Asia/Riyadh",
     format: "standard",
     eventType: "race",
+    canceled: true,
   },
   {
     round: 6,
