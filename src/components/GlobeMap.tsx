@@ -607,7 +607,7 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
                           userSelect: "none",
                         }}
                       >
-                        {race.round}
+                        {race.championshipRound ?? ""}
                       </text>
                     </g>
                   );

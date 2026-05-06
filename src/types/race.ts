@@ -12,6 +12,8 @@ export type Race = {
   timeZone?: string; // IANA tz string
   format: RaceWeekendFormat;
   eventType: "race"; // Always "race" for existing races
+  /** Championship round shown in UI; omit for canceled races removed from the calendar count */
+  championshipRound?: number;
   canceled?: boolean;
   winner?: string;
   winnerHighlight?: string;

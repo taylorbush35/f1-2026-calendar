@@ -202,12 +202,23 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
           className="race-panel-animate-in relative z-10 pl-9 pr-9 sm:pl-12 sm:pr-12"
         >
           <div className="mb-3 flex flex-wrap items-center gap-2 sm:mb-4 sm:gap-3">
-            <span
-              className="text-[10px] font-semibold uppercase tracking-[0.22em] sm:text-xs"
-              style={{ color: "var(--text-tertiary)" }}
-            >
-              {event.eventType === "race" ? `Round ${event.round}` : event.code}
-            </span>
+            {event.eventType === "testing" ? (
+              <span
+                className="text-[10px] font-semibold uppercase tracking-[0.22em] sm:text-xs"
+                style={{ color: "var(--text-tertiary)" }}
+              >
+                {event.code}
+              </span>
+            ) : (
+              event.championshipRound != null && (
+                <span
+                  className="text-[10px] font-semibold uppercase tracking-[0.22em] sm:text-xs"
+                  style={{ color: "var(--text-tertiary)" }}
+                >
+                  Round {event.championshipRound}
+                </span>
+              )
+            )}
 
             {event.eventType === "testing" && (
               <span

@@ -39,9 +39,11 @@ export default function RaceCard({ race }: RaceCardProps) {
 
       {/* Content */}
       <div>
-        <div className="mb-2 text-sm font-medium transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
-          Round {race.round}
-        </div>
+        {race.championshipRound != null && (
+          <div className="mb-2 text-sm font-medium transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
+            Round {race.championshipRound}
+          </div>
+        )}
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <h3
             className="text-xl font-semibold transition-colors duration-300"

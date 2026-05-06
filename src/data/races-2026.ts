@@ -3,6 +3,7 @@ import type { Race } from "@/types/race";
 export const races2026: Race[] = [
   {
     round: 1,
+    championshipRound: 1,
     raceName: "Australian Grand Prix",
     circuitName: "Albert Park Circuit",
     country: "Australia",
@@ -16,6 +17,7 @@ export const races2026: Race[] = [
   },
   {
     round: 2,
+    championshipRound: 2,
     raceName: "Chinese Grand Prix",
     circuitName: "Shanghai International Circuit",
     country: "China",
@@ -30,6 +32,7 @@ export const races2026: Race[] = [
   },
   {
     round: 3,
+    championshipRound: 3,
     raceName: "Japanese Grand Prix",
     circuitName: "Suzuka International Racing Course",
     country: "Japan",
@@ -69,6 +72,7 @@ export const races2026: Race[] = [
   },
   {
     round: 6,
+    championshipRound: 4,
     raceName: "Miami Grand Prix",
     circuitName: "Miami International Autodrome",
     country: "United States",
@@ -82,6 +86,7 @@ export const races2026: Race[] = [
   },
   {
     round: 7,
+    championshipRound: 5,
     raceName: "Canadian Grand Prix",
     circuitName: "Circuit Gilles Villeneuve",
     country: "Canada",
@@ -94,6 +99,7 @@ export const races2026: Race[] = [
   },
   {
     round: 8,
+    championshipRound: 6,
     raceName: "Monaco Grand Prix",
     circuitName: "Circuit de Monaco",
     country: "Monaco",
@@ -106,6 +112,7 @@ export const races2026: Race[] = [
   },
   {
     round: 9,
+    championshipRound: 7,
     raceName: "Spanish Grand Prix",
     circuitName: "Circuit de Barcelona-Catalunya",
     country: "Spain",
@@ -118,6 +125,7 @@ export const races2026: Race[] = [
   },
   {
     round: 10,
+    championshipRound: 8,
     raceName: "Austrian Grand Prix",
     circuitName: "Red Bull Ring",
     country: "Austria",
@@ -130,6 +138,7 @@ export const races2026: Race[] = [
   },
   {
     round: 11,
+    championshipRound: 9,
     raceName: "British Grand Prix",
     circuitName: "Silverstone Circuit",
     country: "United Kingdom",
@@ -142,6 +151,7 @@ export const races2026: Race[] = [
   },
   {
     round: 12,
+    championshipRound: 10,
     raceName: "Belgian Grand Prix",
     circuitName: "Circuit de Spa-Francorchamps",
     country: "Belgium",
@@ -154,6 +164,7 @@ export const races2026: Race[] = [
   },
   {
     round: 13,
+    championshipRound: 11,
     raceName: "Hungarian Grand Prix",
     circuitName: "Hungaroring",
     country: "Hungary",
@@ -166,6 +177,7 @@ export const races2026: Race[] = [
   },
   {
     round: 14,
+    championshipRound: 12,
     raceName: "Dutch Grand Prix",
     circuitName: "Circuit Zandvoort",
     country: "Netherlands",
@@ -178,6 +190,7 @@ export const races2026: Race[] = [
   },
   {
     round: 15,
+    championshipRound: 13,
     raceName: "Italian Grand Prix",
     circuitName: "Autodromo Nazionale Monza",
     country: "Italy",
@@ -190,6 +203,7 @@ export const races2026: Race[] = [
   },
   {
     round: 16,
+    championshipRound: 14,
     raceName: "Spanish Grand Prix",
     circuitName: "Madrid Street Circuit",
     country: "Spain",
@@ -202,6 +216,7 @@ export const races2026: Race[] = [
   },
   {
     round: 17,
+    championshipRound: 15,
     raceName: "Azerbaijan Grand Prix",
     circuitName: "Baku City Circuit",
     country: "Azerbaijan",
@@ -214,6 +229,7 @@ export const races2026: Race[] = [
   },
   {
     round: 18,
+    championshipRound: 16,
     raceName: "Singapore Grand Prix",
     circuitName: "Marina Bay Street Circuit",
     country: "Singapore",
@@ -226,6 +242,7 @@ export const races2026: Race[] = [
   },
   {
     round: 19,
+    championshipRound: 17,
     raceName: "United States Grand Prix",
     circuitName: "Circuit of the Americas",
     country: "United States",
@@ -238,6 +255,7 @@ export const races2026: Race[] = [
   },
   {
     round: 20,
+    championshipRound: 18,
     raceName: "Mexico City Grand Prix",
     circuitName: "Autódromo Hermanos Rodríguez",
     country: "Mexico",
@@ -250,6 +268,7 @@ export const races2026: Race[] = [
   },
   {
     round: 21,
+    championshipRound: 19,
     raceName: "São Paulo Grand Prix",
     circuitName: "Autódromo José Carlos Pace",
     country: "Brazil",
@@ -262,6 +281,7 @@ export const races2026: Race[] = [
   },
   {
     round: 22,
+    championshipRound: 20,
     raceName: "Las Vegas Grand Prix",
     circuitName: "Las Vegas Strip Circuit",
     country: "United States",
@@ -274,6 +294,7 @@ export const races2026: Race[] = [
   },
   {
     round: 23,
+    championshipRound: 21,
     raceName: "Qatar Grand Prix",
     circuitName: "Lusail International Circuit",
     country: "Qatar",
@@ -286,6 +307,7 @@ export const races2026: Race[] = [
   },
   {
     round: 24,
+    championshipRound: 22,
     raceName: "Abu Dhabi Grand Prix",
     circuitName: "Yas Marina Circuit",
     country: "United Arab Emirates",

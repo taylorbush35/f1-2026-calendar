@@ -51,7 +51,9 @@ export default function SeasonTimeline({
               const isSelected = selectedEventId === eventId;
               const label =
                 event.eventType === "race"
-                  ? `Round ${event.round}: ${event.raceName}`
+                  ? event.championshipRound != null
+                    ? `Round ${event.championshipRound}: ${event.raceName}`
+                    : event.raceName
                   : `${event.code}: ${event.eventName}`;
               const isTesting = event.eventType === "testing";
 
