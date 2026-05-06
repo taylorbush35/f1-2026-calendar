@@ -95,7 +95,7 @@ export default function StandingsPage() {
       <main className="relative z-10 mx-auto max-w-7xl px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
         <div className="mb-4 sm:mb-8">
           <div className="mb-2 sm:mb-4 flex items-center justify-between gap-2">
-            <SitePageTitle pageLabel="Standings" />
+            <SitePageTitle pageLabel="Trackside" />
             <div className="flex items-center gap-2">
               <NavigationMenu />
               <ThemeToggle />
