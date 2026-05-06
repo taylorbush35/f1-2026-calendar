@@ -9,6 +9,10 @@ interface SeasonTimelineProps {
   onSelectEvent?: (id: number | string) => void;
 }
 
+function isCountingRace(r: Race): boolean {
+  return r.championshipRound != null;
+}
+
 export default function SeasonTimeline({
   events,
   selectedEventId,
@@ -20,7 +24,12 @@ export default function SeasonTimeline({
       .sort((a, b) => a.round - b.round);
   }, [events]);
 
-  const totalRaces = sortedRaces.length;
+  const countingRaces = useMemo(
+    () => sortedRaces.filter(isCountingRace),
+    [sortedRaces]
+  );
+
+  const totalChampionshipRaces = countingRaces.length;
 
   const selectedTimelineIndex = useMemo(() => {
     return events.findIndex((ev) => {
@@ -29,35 +38,65 @@ export default function SeasonTimeline({
     });
   }, [events, selectedEventId]);
 
-  const headline = useMemo(() => {
-    if (totalRaces === 0) return "";
+  const selectedRace = useMemo((): Race | undefined => {
+    if (typeof selectedEventId !== "number") return undefined;
+    return sortedRaces.find((r) => r.round === selectedEventId);
+  }, [sortedRaces, selectedEventId]);
 
-    if (typeof selectedEventId === "number") {
-      const raceIndex = sortedRaces.findIndex((r) => r.round === selectedEventId);
-      if (raceIndex >= 0) {
-        const roundDisplay = raceIndex + 1;
-        const progressPercent = Math.round((raceIndex / totalRaces) * 100);
-        return `Round ${roundDisplay} of ${totalRaces} · Season progress: ${progressPercent}%`;
-      }
-    }
-
+  const maxChampionshipRoundBeforeSelection = useMemo(() => {
     const ti =
       selectedTimelineIndex >= 0 ? selectedTimelineIndex : 0;
-    const racesBefore = events
-      .slice(0, ti)
-      .filter((e) => e.eventType === "race").length;
-    const progressPercent =
-      Math.round((racesBefore / totalRaces) * 100);
-    if (racesBefore === 0) {
+    let max = 0;
+    for (let j = 0; j < ti; j++) {
+      const e = events[j];
+      if (e.eventType === "race" && e.championshipRound != null) {
+        max = Math.max(max, e.championshipRound);
+      }
+    }
+    return max;
+  }, [events, selectedTimelineIndex]);
+
+  const headline = useMemo(() => {
+    if (totalChampionshipRaces === 0) return "";
+
+    if (selectedRace != null && selectedRace.championshipRound != null) {
+      const cr = selectedRace.championshipRound;
+      const progressPercent = Math.round(
+        ((cr - 1) / totalChampionshipRaces) * 100
+      );
+      return `Round ${cr} of ${totalChampionshipRaces} · Season progress: ${progressPercent}%`;
+    }
+
+    if (selectedRace != null && !isCountingRace(selectedRace)) {
+      const roundsCompletedBefore = events
+        .slice(0, selectedTimelineIndex >= 0 ? selectedTimelineIndex : 0)
+        .filter((e) => e.eventType === "race" && e.championshipRound != null)
+        .length;
+      const pct =
+        totalChampionshipRaces > 0
+          ? Math.round(
+              (roundsCompletedBefore / totalChampionshipRaces) * 100
+            )
+          : 0;
+      return `Not a scoring round · Season progress: ${pct}%`;
+    }
+
+    const maxBefore = maxChampionshipRoundBeforeSelection;
+
+    if (maxBefore === 0) {
       return `Pre-season · Season progress: 0%`;
     }
-    return `Round ${racesBefore} of ${totalRaces} · Season progress: ${progressPercent}%`;
+
+    const progressPercent = Math.round(
+      (maxBefore / totalChampionshipRaces) * 100
+    );
+    return `After Round ${maxBefore} of ${totalChampionshipRaces} · Season progress: ${progressPercent}%`;
   }, [
-    selectedEventId,
-    sortedRaces,
-    totalRaces,
+    selectedRace,
+    totalChampionshipRaces,
     events,
     selectedTimelineIndex,
+    maxChampionshipRoundBeforeSelection,
   ]);
 
   const progressFillPct = useMemo(() => {
@@ -95,7 +134,6 @@ export default function SeasonTimeline({
         )}
 
         <div className="relative flex min-h-[2.5rem] items-center sm:min-h-[2.75rem]">
-          {/* Baseline track */}
           <div
             className="absolute left-4 right-4 top-1/2 h-px -translate-y-1/2 sm:left-7 sm:right-7"
             style={{
@@ -107,7 +145,6 @@ export default function SeasonTimeline({
             }}
           />
 
-          {/* Animated progress (first dot → active dot) */}
           <div
             className="pointer-events-none absolute left-4 top-1/2 h-0.5 max-w-[calc(100%-2rem)] -translate-y-1/2 overflow-hidden rounded-full sm:left-7 sm:max-w-[calc(100%-3.5rem)]"
             style={{
@@ -132,11 +169,27 @@ export default function SeasonTimeline({
                     : event.raceName
                   : `${event.code}: ${event.eventName}`;
               const isTesting = event.eventType === "testing";
+              const race = event.eventType === "race" ? event : null;
+              const isCanceledSlot =
+                race != null && !isCountingRace(race);
 
               const activeIdx =
                 selectedTimelineIndex >= 0 ? selectedTimelineIndex : 0;
-              const isPast = i < activeIdx;
-              const isFuture = i > activeIdx;
+
+              let isPast = i < activeIdx;
+              let isFuture = i > activeIdx;
+
+              if (race != null && isCountingRace(race)) {
+                const cr = race.championshipRound!;
+                if (selectedRace?.championshipRound != null) {
+                  isPast = cr < selectedRace.championshipRound;
+                  isFuture = cr > selectedRace.championshipRound;
+                } else if (typeof selectedEventId !== "number") {
+                  const t = maxChampionshipRoundBeforeSelection;
+                  isPast = cr <= t;
+                  isFuture = cr > t;
+                }
+              }
 
               const baseSize = isTesting
                 ? "h-2 w-2 sm:h-2.5 sm:w-2.5"
@@ -146,7 +199,9 @@ export default function SeasonTimeline({
               const idleScale = "scale-100";
 
               let opacity = 1;
-              if (!isSelected) {
+              if (isCanceledSlot && !isSelected) {
+                opacity = 0.32;
+              } else if (!isSelected) {
                 if (isFuture) opacity = isTesting ? 0.42 : 0.36;
                 else if (isPast) opacity = isTesting ? 0.68 : 0.78;
               }
@@ -154,7 +209,10 @@ export default function SeasonTimeline({
               let bg = "var(--accent-muted)";
               if (isSelected) {
                 bg = "var(--accent-primary)";
-              } else if (isPast && event.eventType === "race") {
+              } else if (isCanceledSlot) {
+                bg =
+                  "color-mix(in srgb, var(--text-tertiary) 55%, var(--bg-muted))";
+              } else if (isPast && race != null && isCountingRace(race)) {
                 bg =
                   "color-mix(in srgb, var(--accent-primary) 58%, var(--accent-muted))";
               } else if (isPast && isTesting) {
@@ -163,7 +221,10 @@ export default function SeasonTimeline({
               }
 
               let boxShadow: string | undefined;
-              if (isPast && event.eventType === "race") {
+              if (isCanceledSlot && !isSelected) {
+                boxShadow =
+                  "0 0 0 1px dashed color-mix(in srgb, var(--text-tertiary) 45%, transparent)";
+              } else if (isPast && race != null && isCountingRace(race)) {
                 boxShadow =
                   "0 0 0 1px color-mix(in srgb, var(--accent-primary) 45%, transparent), 0 0 10px -2px color-mix(in srgb, var(--accent-primary) 30%, transparent)";
               } else if (!isSelected) {
