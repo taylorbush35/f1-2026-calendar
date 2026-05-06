@@ -18,7 +18,30 @@ interface ArcPath {
   toRound: number;
 }
 
+function pointerDistance(
+  a: { x: number; y: number },
+  b: { x: number; y: number }
+): number {
+  return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+/** Tailwind `md` and below — mobile globe interactions (scroll + pinch). */
+function useCoarseMobile(): boolean {
+  const [isCoarseMobile, setIsCoarseMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const apply = () => setIsCoarseMobile(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  return isCoarseMobile;
+}
+
 export default function GlobeMap({ races, testingEvents, selectedEventId, onSelectEvent }: GlobeMapProps) {
+  const isCoarseMobile = useCoarseMobile();
   // SVG dimensions
   const width = 1000;
   const height = 600;
@@ -59,6 +82,21 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
   // Zoom state
   const [zoom, setZoom] = useState(1);
   const [userHasZoomed, setUserHasZoomed] = useState(false);
+  const zoomRef = useRef(1);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+
+  /** Active touches / pointers on the SVG (for mobile pinch). */
+  const activePointersRef = useRef(
+    new Map<number, { x: number; y: number }>()
+  );
+  const pinchStartDistRef = useRef(0);
+  const pinchStartZoomRef = useRef(1);
+  /** Mobile: user is scrolling the page vertically, not panning the globe. */
+  const gestureIsVerticalScrollRef = useRef(false);
+  const startYRef = useRef(0);
+  const lastYRef = useRef(0);
 
   // Zoom constants
   const minZoom = 1;
@@ -161,26 +199,135 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
       return;
     }
 
-    e.preventDefault();
-
     // Clear any active animation
     if (animationIntervalRef.current) {
       clearInterval(animationIntervalRef.current);
       animationIntervalRef.current = null;
     }
 
-    // Reset drag state
+    activePointersRef.current.set(e.pointerId, {
+      x: e.clientX,
+      y: e.clientY,
+    });
+
+    // Mobile: two-finger pinch zoom (does not use pointer capture)
+    if (isCoarseMobile && activePointersRef.current.size === 2) {
+      const pts = [...activePointersRef.current.values()];
+      pinchStartDistRef.current = pointerDistance(pts[0], pts[1]);
+      pinchStartZoomRef.current = zoomRef.current;
+      isDraggingRef.current = false;
+      hasStartedDragRef.current = false;
+      gestureIsVerticalScrollRef.current = false;
+      e.preventDefault();
+      return;
+    }
+
+    if (!isCoarseMobile) {
+      e.preventDefault();
+      isDraggingRef.current = false;
+      hasStartedDragRef.current = false;
+      pendingDragPxRef.current = 0;
+      startXRef.current = e.clientX;
+      lastXRef.current = e.clientX;
+      startLonOffsetRef.current = globeLonOffset;
+      (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
+      return;
+    }
+
+    // Mobile single-finger: allow vertical scroll unless we lock horizontal pan
+    gestureIsVerticalScrollRef.current = false;
     isDraggingRef.current = false;
     hasStartedDragRef.current = false;
     pendingDragPxRef.current = 0;
     startXRef.current = e.clientX;
+    startYRef.current = e.clientY;
     lastXRef.current = e.clientX;
+    lastYRef.current = e.clientY;
     startLonOffsetRef.current = globeLonOffset;
-
-    (e.currentTarget as any).setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (activePointersRef.current.has(e.pointerId)) {
+      activePointersRef.current.set(e.pointerId, {
+        x: e.clientX,
+        y: e.clientY,
+      });
+    }
+
+    // Mobile pinch zoom
+    if (isCoarseMobile && activePointersRef.current.size === 2) {
+      const pts = [...activePointersRef.current.values()];
+      const dist = pointerDistance(pts[0], pts[1]);
+      if (pinchStartDistRef.current > 1) {
+        const scale = dist / pinchStartDistRef.current;
+        setZoomClamped(pinchStartZoomRef.current * scale);
+      }
+      e.preventDefault();
+      return;
+    }
+
+    if (!isCoarseMobile) {
+      if (!e.buttons) {
+        if (isDraggingRef.current) {
+          isDraggingRef.current = false;
+          hasStartedDragRef.current = false;
+          setCursor("grab");
+          if (dragRafIdRef.current !== null) {
+            cancelAnimationFrame(dragRafIdRef.current);
+            dragRafIdRef.current = null;
+          }
+        }
+        return;
+      }
+
+      e.preventDefault();
+
+      const currentX = e.clientX;
+      const dxFromStart = currentX - startXRef.current;
+
+      if (!hasStartedDragRef.current) {
+        if (Math.abs(dxFromStart) < DRAG_THRESHOLD) {
+          return;
+        }
+        hasStartedDragRef.current = true;
+        isDraggingRef.current = true;
+        setCursor("grabbing");
+      }
+
+      const dx = currentX - lastXRef.current;
+      lastXRef.current = currentX;
+      pendingDragPxRef.current += dx;
+
+      if (dragRafIdRef.current === null) {
+        const tick = () => {
+          const deltaPx = pendingDragPxRef.current;
+
+          if (Math.abs(deltaPx) > 0.01 && isDraggingRef.current) {
+            const clampedPx = Math.max(
+              -MAX_DRAG_DELTA_PER_FRAME,
+              Math.min(MAX_DRAG_DELTA_PER_FRAME, deltaPx)
+            );
+
+            const lonDelta = clampedPx * DRAG_SENSITIVITY;
+
+            setGlobeLonOffset((prev) => {
+              return normalizeOffset(prev - lonDelta);
+            });
+
+            pendingDragPxRef.current *= 0.3;
+
+            dragRafIdRef.current = requestAnimationFrame(tick);
+          } else {
+            pendingDragPxRef.current = 0;
+            dragRafIdRef.current = null;
+          }
+        };
+        dragRafIdRef.current = requestAnimationFrame(tick);
+      }
+      return;
+    }
+
+    // Mobile single-finger
     if (!e.buttons) {
       if (isDraggingRef.current) {
         isDraggingRef.current = false;
@@ -194,14 +341,28 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
       return;
     }
 
-    e.preventDefault();
+    if (gestureIsVerticalScrollRef.current) {
+      return;
+    }
 
     const currentX = e.clientX;
+    const currentY = e.clientY;
     const dxFromStart = currentX - startXRef.current;
+    const dyFromStart = currentY - startYRef.current;
 
-    // Only start drag after threshold
     if (!hasStartedDragRef.current) {
+      if (
+        Math.abs(dyFromStart) > Math.abs(dxFromStart) &&
+        Math.abs(dyFromStart) > DRAG_THRESHOLD
+      ) {
+        gestureIsVerticalScrollRef.current = true;
+        return;
+      }
       if (Math.abs(dxFromStart) < DRAG_THRESHOLD) {
+        return;
+      }
+      if (Math.abs(dxFromStart) <= Math.abs(dyFromStart)) {
+        gestureIsVerticalScrollRef.current = true;
         return;
       }
       hasStartedDragRef.current = true;
@@ -209,34 +370,33 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
       setCursor("grabbing");
     }
 
-    // Accumulate pixel delta (relative to last position)
+    e.preventDefault();
+
     const dx = currentX - lastXRef.current;
     lastXRef.current = currentX;
+    lastYRef.current = currentY;
     pendingDragPxRef.current += dx;
 
-    // Start rAF loop if not already running
     if (dragRafIdRef.current === null) {
       const tick = () => {
         const deltaPx = pendingDragPxRef.current;
 
         if (Math.abs(deltaPx) > 0.01 && isDraggingRef.current) {
-          // Clamp per-frame delta
-          const clampedPx = Math.max(-MAX_DRAG_DELTA_PER_FRAME, Math.min(MAX_DRAG_DELTA_PER_FRAME, deltaPx));
+          const clampedPx = Math.max(
+            -MAX_DRAG_DELTA_PER_FRAME,
+            Math.min(MAX_DRAG_DELTA_PER_FRAME, deltaPx)
+          );
 
-          // Convert pixels to longitude delta
           const lonDelta = clampedPx * DRAG_SENSITIVITY;
 
-          // Update globeLonOffset with functional setState
           setGlobeLonOffset((prev) => {
-            return normalizeOffset(prev - lonDelta); // Negative because dragging right rotates left
+            return normalizeOffset(prev - lonDelta);
           });
 
-          // Decay the pending delta
           pendingDragPxRef.current *= 0.3;
 
           dragRafIdRef.current = requestAnimationFrame(tick);
         } else {
-          // Reset when delta is small enough or drag ended
           pendingDragPxRef.current = 0;
           dragRafIdRef.current = null;
         }
@@ -246,22 +406,24 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
   };
 
   const handlePointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
-    (e.currentTarget as any).releasePointerCapture(e.pointerId);
-    isDraggingRef.current = false;
-    hasStartedDragRef.current = false;
-    setCursor("grab");
-    pendingDragPxRef.current = 0;
-    if (dragRafIdRef.current !== null) {
-      cancelAnimationFrame(dragRafIdRef.current);
-      dragRafIdRef.current = null;
-    }
-  };
+    activePointersRef.current.delete(e.pointerId);
 
-  const handlePointerLeave = (e: React.PointerEvent<SVGSVGElement>) => {
-    if (isDraggingRef.current) {
-      (e.currentTarget as any).releasePointerCapture(e.pointerId);
+    if (activePointersRef.current.size < 2) {
+      pinchStartDistRef.current = 0;
+    }
+
+    if (!isCoarseMobile) {
+      try {
+        (e.currentTarget as SVGSVGElement).releasePointerCapture(e.pointerId);
+      } catch {
+        /* not captured */
+      }
+    }
+
+    if (activePointersRef.current.size === 0) {
       isDraggingRef.current = false;
       hasStartedDragRef.current = false;
+      gestureIsVerticalScrollRef.current = false;
       setCursor("grab");
       pendingDragPxRef.current = 0;
       if (dragRafIdRef.current !== null) {
@@ -271,9 +433,56 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
     }
   };
 
+  const handlePointerCancel = (e: React.PointerEvent<SVGSVGElement>) => {
+    activePointersRef.current.delete(e.pointerId);
+    if (activePointersRef.current.size < 2) {
+      pinchStartDistRef.current = 0;
+    }
+    if (activePointersRef.current.size === 0) {
+      isDraggingRef.current = false;
+      hasStartedDragRef.current = false;
+      gestureIsVerticalScrollRef.current = false;
+      setCursor("grab");
+      pendingDragPxRef.current = 0;
+      if (dragRafIdRef.current !== null) {
+        cancelAnimationFrame(dragRafIdRef.current);
+        dragRafIdRef.current = null;
+      }
+    }
+    try {
+      (e.currentTarget as SVGSVGElement).releasePointerCapture(e.pointerId);
+    } catch {
+      /* */
+    }
+  };
+
+  const handlePointerLeave = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!isDraggingRef.current) return;
+    if (!isCoarseMobile) {
+      try {
+        (e.currentTarget as SVGSVGElement).releasePointerCapture(e.pointerId);
+      } catch {
+        /* */
+      }
+    }
+    isDraggingRef.current = false;
+    hasStartedDragRef.current = false;
+    gestureIsVerticalScrollRef.current = false;
+    setCursor("grab");
+    pendingDragPxRef.current = 0;
+    if (dragRafIdRef.current !== null) {
+      cancelAnimationFrame(dragRafIdRef.current);
+      dragRafIdRef.current = null;
+    }
+  };
+
   // Wheel handler for horizontal panning and vertical zoom
   const handleWheel = (e: React.WheelEvent<SVGSVGElement>) => {
-    e.preventDefault(); // Prevent page scroll while hovering the globe
+    if (isCoarseMobile) {
+      return;
+    }
+
+    e.preventDefault();
 
     // Handle horizontal scrolling for panning
     const rawDeltaX = e.deltaX;
@@ -501,7 +710,7 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
           userSelect: "none",
           WebkitUserSelect: "none",
           WebkitUserDrag: "none",
-          touchAction: "none",
+          touchAction: isCoarseMobile ? "pan-y" : "none",
           maxWidth: "100%",
         } as React.CSSProperties & { WebkitUserDrag?: string; touchAction?: string }}
         className="transition-colors duration-300"
@@ -509,6 +718,7 @@ export default function GlobeMap({ races, testingEvents, selectedEventId, onSele
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
         onPointerLeave={handlePointerLeave}
       >
         {/* Globe oval mask */}

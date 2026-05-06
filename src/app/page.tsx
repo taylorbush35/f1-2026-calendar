@@ -4,9 +4,9 @@ import { useState, useMemo } from "react";
 import { races2026 } from "@/data/races-2026";
 import { testingEvents2026 } from "@/data/testing-events-2026";
 import { calendarEvents2026 } from "@/data/calendar-events-2026";
-import type { CalendarEvent } from "@/types/race";
 import ThemeToggle from "@/components/ThemeToggle";
 import NavigationMenu from "@/components/NavigationMenu";
+import SitePageTitle from "@/components/SitePageTitle";
 import GlobeMap from "@/components/GlobeMap";
 import SeasonTimeline from "@/components/SeasonTimeline";
 import RacePanel from "@/components/RacePanel";
@@ -38,9 +38,7 @@ export default function Home() {
         {/* Header */}
         <div className="mb-4 sm:mb-8">
           <div className="mb-2 sm:mb-4 flex items-center justify-between gap-2">
-            <h1 className="text-2xl sm:text-4xl font-bold transition-colors duration-300" style={{ color: "var(--text-primary)" }}>
-              F1 2026 Calendar
-            </h1>
+            <SitePageTitle pageLabel="Calendar" />
             <div className="flex items-center gap-2">
               <NavigationMenu />
               <ThemeToggle />
