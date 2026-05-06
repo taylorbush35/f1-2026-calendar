@@ -38,7 +38,7 @@ export default function Home() {
         {/* Header */}
         <div className="mb-4 sm:mb-8">
           <div className="mb-2 sm:mb-4 flex items-center justify-between gap-2">
-            <SitePageTitle pageLabel="Calendar" />
+            <SitePageTitle pageLabel="Trackside" />
             <div className="flex items-center gap-2">
               <NavigationMenu />
               <ThemeToggle />
