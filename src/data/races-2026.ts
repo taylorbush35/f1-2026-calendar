@@ -12,6 +12,7 @@ export const races2026: Race[] = [
     timeZone: "Australia/Melbourne",
     format: "standard",
     eventType: "race",
+    winner: "George Russell",
   },
   {
     round: 2,
@@ -24,6 +25,8 @@ export const races2026: Race[] = [
     timeZone: "Asia/Shanghai",
     format: "sprint",
     eventType: "race",
+    winner: "Kimi Antonelli",
+    winnerHighlight: "1st race win!",
   },
   {
     round: 3,
@@ -36,6 +39,7 @@ export const races2026: Race[] = [
     timeZone: "Asia/Tokyo",
     format: "standard",
     eventType: "race",
+    winner: "Kimi Antonelli",
   },
   {
     round: 4,
@@ -74,6 +78,7 @@ export const races2026: Race[] = [
     timeZone: "America/New_York",
     format: "sprint",
     eventType: "race",
+    winner: "Kimi Antonelli",
   },
   {
     round: 7,

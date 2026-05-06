@@ -99,6 +99,31 @@ export default function RaceCard({ race }: RaceCardProps) {
           )}
           {formatDate(race.raceDate)}
         </p>
+
+        {race.winner && (
+          <div
+            className="mt-4 rounded-lg border px-3 py-2"
+            style={{
+              borderColor: "var(--accent-primary)",
+              backgroundColor: "rgba(195, 0, 0, 0.08)",
+            }}
+          >
+            <p
+              className="text-[11px] font-bold uppercase tracking-wide"
+              style={{ color: "var(--accent-primary)" }}
+            >
+              Race Winner
+            </p>
+            <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+              {race.winner}
+              {race.winnerHighlight && (
+                <span className="ml-2 text-xs font-medium" style={{ color: "var(--accent-primary)" }}>
+                  ({race.winnerHighlight})
+                </span>
+              )}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

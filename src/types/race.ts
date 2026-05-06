@@ -13,6 +13,8 @@ export type Race = {
   format: RaceWeekendFormat;
   eventType: "race"; // Always "race" for existing races
   canceled?: boolean;
+  winner?: string;
+  winnerHighlight?: string;
 };
 
 export type TestingEvent = {

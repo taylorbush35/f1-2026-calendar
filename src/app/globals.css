@@ -81,3 +81,67 @@ body {
 [data-theme="dark"] .race-card:hover {
   box-shadow: 0 10px 15px -3px rgba(255, 42, 42, 0.2), 0 4px 6px -2px rgba(255, 42, 42, 0.1);
 }
+
+/* Race Control / dashboard motion (used by RacePanel + SeasonTimeline) */
+@keyframes f1-race-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes f1-race-winner-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes f1-timeline-active-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--bg-primary),
+      0 0 0 4px var(--accent-primary),
+      0 0 14px color-mix(in srgb, var(--accent-primary) 55%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px var(--bg-primary),
+      0 0 0 5px var(--accent-primary),
+      0 0 28px color-mix(in srgb, var(--accent-primary) 70%, transparent);
+  }
+}
+
+.race-panel-animate-in {
+  animation: f1-race-panel-enter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.race-winner-animate-in {
+  animation: f1-race-winner-reveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+.f1-timeline-dot--active {
+  animation: f1-timeline-active-pulse 2.4s ease-in-out infinite;
+}
+
+/* Race panel inner glass edge (light theme needs darker inset) */
+.race-panel-inner-gloss {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .race-panel-inner-gloss {
+  box-shadow:
+    inset 0 1px 0 0 rgba(0, 0, 0, 0.04),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}

@@ -9,42 +9,27 @@ interface RacePanelProps {
   onNavigate?: (eventId: number | string) => void;
 }
 
-// Helper to determine race badges based on race properties
-// TODO: Extend with race times, distances, and calendar logic for NIGHT, BACK-TO-BACK, LONG HAUL
 function getRaceBadges(race: Race): string[] {
   const badges: string[] = [];
-  
-  // Sprint format (current implementation)
   if (race.format === "sprint") {
     badges.push("SPRINT");
   }
-  
-  // Future: Add NIGHT detection based on race time
-  // if (race.raceTime && isNightRace(race.raceTime)) {
-  //   badges.push("NIGHT");
-  // }
-  
-  // Future: Add BACK-TO-BACK detection based on calendar proximity
-  // if (isBackToBack(race, allRaces)) {
-  //   badges.push("BACK-TO-BACK");
-  // }
-  
-  // Future: Add LONG HAUL detection based on travel distance
-  // if (isLongHaul(race, previousRace)) {
-  //   badges.push("LONG HAUL");
-  // }
-  
   return badges;
+}
+
+function panelContentKey(event: CalendarEvent): string {
+  return event.eventType === "race"
+    ? `race-${event.round}`
+    : `test-${event.code}`;
 }
 
 export default function RacePanel({ event, allEvents = [], onNavigate }: RacePanelProps) {
   const [isHovered, setIsHovered] = useState(false);
-  
+
   if (!event) {
     return null;
   }
 
-  // Find current event index and determine prev/next
   const currentIndex = allEvents.findIndex((e) => {
     if (e.eventType === "race" && event.eventType === "race") {
       return e.round === event.round;
@@ -90,241 +75,298 @@ export default function RacePanel({ event, allEvents = [], onNavigate }: RacePan
 
   const badges = event.eventType === "race" ? getRaceBadges(event) : [];
   const isCanceledRace = event.eventType === "race" && event.canceled;
+  const showWinner =
+    event.eventType === "race" && Boolean(event.winner) && !isCanceledRace;
+
+  const outerGlow = isCanceledRace
+    ? isHovered
+      ? "0 0 0 1px color-mix(in srgb, var(--accent-primary) 55%, transparent), 0 0 48px -8px color-mix(in srgb, var(--accent-primary) 50%, transparent), 0 16px 40px -12px rgba(0, 0, 0, 0.5)"
+      : "0 0 0 1px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 0 36px -10px color-mix(in srgb, var(--accent-primary) 40%, transparent), 0 12px 32px -12px rgba(0, 0, 0, 0.45)"
+    : isHovered
+      ? "0 0 0 1px color-mix(in srgb, var(--accent-primary) 32%, transparent), 0 28px 72px -28px color-mix(in srgb, var(--accent-primary) 42%, transparent), 0 16px 40px -16px rgba(0, 0, 0, 0.55)"
+      : "0 0 0 1px color-mix(in srgb, var(--accent-primary) 16%, transparent), 0 22px 56px -24px color-mix(in srgb, var(--accent-primary) 32%, transparent), 0 10px 32px -14px rgba(0, 0, 0, 0.4)";
 
   return (
     <div
-      className="group relative rounded-lg border px-4 py-4 sm:px-8 sm:py-6 transition-all duration-[180ms] ease-out"
+      className="group relative rounded-2xl sm:rounded-3xl transition-all duration-500 ease-out"
       style={{
-        backgroundColor: "var(--bg-surface)",
-        borderColor: isCanceledRace ? "var(--accent-primary)" : "var(--border-subtle)",
-        borderWidth: isCanceledRace ? 2 : 1,
-        boxShadow: isHovered
-          ? "0 0 0 1px var(--border-subtle), 0 4px 12px 0 rgba(0, 0, 0, 0.12), 0 2px 4px 0 rgba(0, 0, 0, 0.08)"
-          : "0 0 0 1px var(--border-subtle), 0 1px 3px 0 rgba(0, 0, 0, 0.05)",
-        transform: isHovered ? "translateY(-1px)" : "translateY(0)",
+        boxShadow: outerGlow,
+        transform: isHovered ? "translateY(-3px)" : "translateY(0)",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Navigation arrows */}
-      {onNavigate && (
-        <>
-          {/* Left arrow */}
-          <button
-            onClick={handlePrevious}
-            disabled={!hasPrevious}
-            className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
-            style={{
-              backgroundColor: hasPrevious ? "rgba(195, 0, 0, 0.08)" : "transparent",
-              color: "var(--accent-primary)",
-              opacity: hasPrevious ? 1 : 0.3,
-            }}
-            onMouseEnter={(e) => {
-              if (hasPrevious) {
-                e.currentTarget.style.backgroundColor = "rgba(195, 0, 0, 0.15)";
-                e.currentTarget.style.transform = "scale(1.1)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (hasPrevious) {
-                e.currentTarget.style.backgroundColor = "rgba(195, 0, 0, 0.08)";
-                e.currentTarget.style.transform = "scale(1)";
-              }
-            }}
-            aria-label="Previous event"
-          >
-            <svg
-              className="w-4 h-4 sm:w-5 sm:h-5"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12.5 15L7.5 10L12.5 5"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-
-          {/* Right arrow */}
-          <button
-            onClick={handleNext}
-            disabled={!hasNext}
-            className="absolute right-1 sm:right-4 top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
-            style={{
-              backgroundColor: hasNext ? "rgba(195, 0, 0, 0.08)" : "transparent",
-              color: "var(--accent-primary)",
-              opacity: hasNext ? 1 : 0.3,
-            }}
-            onMouseEnter={(e) => {
-              if (hasNext) {
-                e.currentTarget.style.backgroundColor = "rgba(195, 0, 0, 0.15)";
-                e.currentTarget.style.transform = "scale(1.1)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (hasNext) {
-                e.currentTarget.style.backgroundColor = "rgba(195, 0, 0, 0.08)";
-                e.currentTarget.style.transform = "scale(1)";
-              }
-            }}
-            aria-label="Next event"
-          >
-            <svg
-              className="w-4 h-4 sm:w-5 sm:h-5"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M7.5 5L12.5 10L7.5 15"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </button>
-        </>
-      )}
-      {/* Left accent rail */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg transition-all duration-[180ms] ease-out"
+        className="race-panel-inner-gloss relative overflow-hidden rounded-2xl sm:rounded-3xl px-4 pb-5 pt-5 sm:px-10 sm:pb-8 sm:pt-7"
         style={{
-          backgroundColor: isHovered ? "var(--accent-primary)" : "var(--accent-primary)",
-          opacity: isHovered ? 1 : 0.85,
-          boxShadow: isHovered ? "0 0 8px var(--accent-primary)" : "none",
+          background:
+            "linear-gradient(168deg, color-mix(in srgb, var(--bg-surface) 88%, var(--bg-primary)) 0%, var(--bg-surface) 42%, color-mix(in srgb, var(--bg-surface) 75%, var(--bg-muted)) 100%)",
         }}
-      />
+      >
+        {/* Top cinematic accent */}
+        <div
+          className="pointer-events-none absolute left-4 right-4 top-0 h-px sm:left-8 sm:right-8"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--accent-primary) 85%, transparent) 22%, var(--accent-primary) 50%, color-mix(in srgb, var(--accent-primary) 85%, transparent) 78%, transparent 100%)",
+            opacity: isHovered ? 1 : 0.85,
+            transition: "opacity 0.4s ease",
+          }}
+        />
 
-      {/* Connector dot */}
-      <div
-        className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full transition-all duration-[180ms] ease-out"
-        style={{
-          backgroundColor: "var(--accent-primary)",
-          boxShadow: isHovered
-            ? "0 0 0 2px var(--bg-surface), 0 0 8px var(--accent-primary)"
-            : "0 0 0 2px var(--bg-surface)",
-        }}
-      />
+        {/* Ambient red wash */}
+        <div
+          className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full blur-3xl transition-opacity duration-500"
+          style={{
+            background:
+              "radial-gradient(circle, color-mix(in srgb, var(--accent-primary) 28%, transparent) 0%, transparent 70%)",
+            opacity: isHovered ? 0.95 : 0.55,
+          }}
+        />
+        <div
+          className="pointer-events-none absolute -bottom-20 -left-16 h-56 w-56 rounded-full blur-3xl"
+          style={{
+            background:
+              "radial-gradient(circle, color-mix(in srgb, var(--accent-primary) 12%, transparent) 0%, transparent 68%)",
+            opacity: 0.5,
+          }}
+        />
 
-      {/* Content */}
-      <div className="relative pl-4 sm:pl-6">
-        {/* Round/Code label and Badges */}
-        <div className="mb-1 flex items-center gap-3">
-          <div
-            className="text-xs font-medium uppercase tracking-wide transition-colors duration-300"
-            style={{ color: "var(--text-tertiary)" }}
-          >
-            {event.eventType === "race" ? `Round ${event.round}` : event.code}
-          </div>
-          
-          {event.eventType === "testing" && (
-            <span
-              className="rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide transition-all duration-[180ms] ease-out"
+        {onNavigate && (
+          <>
+            <button
+              type="button"
+              onClick={handlePrevious}
+              disabled={!hasPrevious}
+              className="absolute left-2 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full backdrop-blur-md transition-all duration-300 enabled:hover:scale-110 enabled:active:scale-95 sm:left-4 sm:h-11 sm:w-11 disabled:cursor-not-allowed disabled:opacity-25"
               style={{
-                borderColor: "var(--accent-primary)",
+                backgroundColor: "color-mix(in srgb, var(--bg-surface) 55%, transparent)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
                 color: "var(--accent-primary)",
-                backgroundColor: "transparent",
-                boxShadow: isHovered 
-                  ? "0 0 0 1px var(--accent-primary), 0 0 8px rgba(195, 0, 0, 0.2)" 
-                  : "none",
-                opacity: isHovered ? 1 : 0.9,
+                boxShadow: hasPrevious
+                  ? "0 0 24px -8px color-mix(in srgb, var(--accent-primary) 45%, transparent)"
+                  : undefined,
               }}
+              aria-label="Previous event"
             >
-              Pre-Season Testing
-            </span>
-          )}
-
-          {isCanceledRace && (
-            <span
-              className="rounded-full px-2.5 py-1 text-[11px] font-bold uppercase leading-tight tracking-wide text-white sm:text-xs sm:px-3 sm:py-1.5"
+              <svg
+                className="h-4 w-4 sm:h-5 sm:w-5"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12.5 15L7.5 10L12.5 5"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={!hasNext}
+              className="absolute right-2 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full backdrop-blur-md transition-all duration-300 enabled:hover:scale-110 enabled:active:scale-95 sm:right-4 sm:h-11 sm:w-11 disabled:cursor-not-allowed disabled:opacity-25"
               style={{
-                backgroundColor: "var(--accent-primary)",
-                boxShadow: "0 2px 10px rgba(195, 0, 0, 0.45)",
+                backgroundColor: "color-mix(in srgb, var(--bg-surface) 55%, transparent)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                color: "var(--accent-primary)",
+                boxShadow: hasNext
+                  ? "0 0 24px -8px color-mix(in srgb, var(--accent-primary) 45%, transparent)"
+                  : undefined,
               }}
+              aria-label="Next event"
             >
-              Removed from calendar
+              <svg
+                className="h-4 w-4 sm:h-5 sm:w-5"
+                viewBox="0 0 20 20"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M7.5 5L12.5 10L7.5 15"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          </>
+        )}
+
+        <div
+          key={panelContentKey(event)}
+          className="race-panel-animate-in relative z-10 pl-9 pr-9 sm:pl-12 sm:pr-12"
+        >
+          <div className="mb-3 flex flex-wrap items-center gap-2 sm:mb-4 sm:gap-3">
+            <span
+              className="text-[10px] font-semibold uppercase tracking-[0.22em] sm:text-xs"
+              style={{ color: "var(--text-tertiary)" }}
+            >
+              {event.eventType === "race" ? `Round ${event.round}` : event.code}
             </span>
-          )}
-          
-          {/* Badge cluster */}
-          {badges.length > 0 && (
-            <div className="flex items-center gap-2">
-              {badges.map((badge) => {
-                // Sprint badges are red by default; other badges are neutral
-                const isSprint = badge === "SPRINT";
-                const isActiveBadge = isSprint;
-                
-                return (
-                  <span
-                    key={badge}
-                    className="rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide transition-all duration-[180ms] ease-out"
+
+            {event.eventType === "testing" && (
+              <span
+                className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white sm:px-3 sm:text-[11px]"
+                style={{
+                  background:
+                    "linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 92%, white) 0%, var(--accent-primary) 100%)",
+                  boxShadow:
+                    "0 0 20px -6px color-mix(in srgb, var(--accent-primary) 65%, transparent), inset 0 1px 0 0 rgba(255, 255, 255, 0.25)",
+                }}
+              >
+                Pre-Season Testing
+              </span>
+            )}
+
+            {isCanceledRace && (
+              <span
+                className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white sm:px-3 sm:text-[11px]"
+                style={{
+                  backgroundColor: "var(--accent-primary)",
+                  boxShadow: "0 0 28px -6px color-mix(in srgb, var(--accent-primary) 70%, transparent)",
+                }}
+              >
+                Removed from calendar
+              </span>
+            )}
+
+            {badges.map((badge) =>
+              badge === "SPRINT" ? (
+                <span
+                  key={badge}
+                  className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white sm:px-3.5 sm:py-1.5 sm:text-[11px]"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 88%, white) 0%, color-mix(in srgb, var(--accent-primary) 92%, black) 100%)",
+                    boxShadow:
+                      "0 0 22px -5px color-mix(in srgb, var(--accent-primary) 70%, transparent), inset 0 1px 0 0 rgba(255, 255, 255, 0.22)",
+                  }}
+                >
+                  Sprint
+                </span>
+              ) : (
+                <span
+                  key={badge}
+                  className="rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                  style={{
+                    borderColor: "var(--border-subtle)",
+                    color: "var(--text-tertiary)",
+                  }}
+                >
+                  {badge}
+                </span>
+              )
+            )}
+          </div>
+
+          <h2
+            className="mb-2 text-2xl font-bold leading-[1.1] tracking-tight sm:mb-3 sm:text-3xl md:text-4xl"
+            style={{
+              color: isCanceledRace ? "var(--text-secondary)" : "var(--text-primary)",
+              textDecoration: isCanceledRace ? "line-through" : undefined,
+              opacity: isCanceledRace ? 0.72 : 1,
+            }}
+          >
+            {event.eventType === "race" ? event.raceName : event.eventName}
+          </h2>
+
+          <p
+            className="mb-1 text-sm font-medium leading-relaxed sm:text-base md:text-lg"
+            style={{
+              color: "var(--text-secondary)",
+              textDecoration: isCanceledRace ? "line-through" : undefined,
+              opacity: isCanceledRace ? 0.65 : 1,
+            }}
+          >
+            {event.circuitName}
+            {" · "}
+            {event.city ? `${event.city}, ${event.country}` : event.country}
+          </p>
+
+          <p
+            className="text-xs font-medium sm:text-sm"
+            style={{
+              color: "var(--text-tertiary)",
+              textDecoration: isCanceledRace ? "line-through" : undefined,
+              opacity: isCanceledRace ? 0.65 : 1,
+            }}
+          >
+            {event.eventType === "race" && isCanceledRace && (
+              <span className="mr-2" style={{ color: "var(--text-secondary)" }}>
+                Originally planned:
+              </span>
+            )}
+            {event.eventType === "race"
+              ? formatDate(event.raceDate)
+              : formatDateRange(event.startDate, event.endDate)}
+          </p>
+
+          {showWinner && (
+            <div className="relative mt-7 sm:mt-9">
+              <div
+                className="pointer-events-none absolute inset-0 -mx-2 rounded-xl opacity-[0.35] sm:-mx-3"
+                style={{
+                  backgroundImage: `
+                    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+                    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                    repeating-linear-gradient(-45deg, transparent, transparent 5px, rgba(255,255,255,0.04) 5px, rgba(255,255,255,0.04) 6px)
+                  `,
+                  backgroundSize: "14px 14px, 14px 14px, auto",
+                  maskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
+                  WebkitMaskImage: "linear-gradient(to bottom, black 40%, transparent 100%)",
+                }}
+              />
+              <div
+                className="relative border-t pt-6 sm:pt-7"
+                style={{
+                  borderColor: "color-mix(in srgb, var(--border-subtle) 65%, transparent)",
+                }}
+              >
+                <p
+                  className="text-[10px] font-bold uppercase tracking-[0.28em] sm:text-[11px]"
+                  style={{ color: "var(--accent-primary)" }}
+                >
+                  Race Winner
+                </p>
+                <div className="race-winner-animate-in mt-3 flex flex-col gap-1 sm:mt-4">
+                  <p
+                    className="text-2xl font-bold leading-none tracking-tight sm:text-3xl md:text-4xl"
                     style={{
-                      borderColor: isActiveBadge ? "var(--accent-primary)" : "var(--border-subtle)",
-                      color: isActiveBadge ? "var(--accent-primary)" : "var(--text-tertiary)",
-                      backgroundColor: "transparent",
-                      boxShadow: isActiveBadge && isHovered 
-                        ? "0 0 0 1px var(--accent-primary), 0 0 8px rgba(195, 0, 0, 0.2)" 
-                        : "none",
-                      opacity: isActiveBadge && isHovered ? 1 : isActiveBadge ? 0.9 : 1,
+                      background: `linear-gradient(105deg, var(--text-primary) 0%, var(--text-primary) 55%, color-mix(in srgb, var(--accent-primary) 85%, var(--text-primary)) 100%)`,
+                      WebkitBackgroundClip: "text",
+                      backgroundClip: "text",
+                      color: "transparent",
+                      filter: "drop-shadow(0 0 28px color-mix(in srgb, var(--accent-primary) 35%, transparent))",
                     }}
                   >
-                    {badge}
-                  </span>
-                );
-              })}
+                    {event.winner}
+                  </p>
+                  {event.winnerHighlight && (
+                    <p
+                      className="text-sm font-semibold sm:text-base"
+                      style={{ color: "var(--accent-primary)" }}
+                    >
+                      {event.winnerHighlight}
+                    </p>
+                  )}
+                  <div
+                    className="mt-3 h-0.5 max-w-[12rem] rounded-full sm:mt-4"
+                    style={{
+                      background:
+                        "linear-gradient(90deg, var(--accent-primary), color-mix(in srgb, var(--accent-primary) 15%, transparent))",
+                      boxShadow: "0 0 16px color-mix(in srgb, var(--accent-primary) 45%, transparent)",
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Headline */}
-        <h2
-          className="mb-2 sm:mb-3 text-xl sm:text-2xl md:text-3xl font-bold tracking-tight transition-colors duration-300"
-          style={{
-            color: isCanceledRace ? "var(--text-secondary)" : "var(--text-primary)",
-            textDecoration: isCanceledRace ? "line-through" : undefined,
-            opacity: isCanceledRace ? 0.75 : 1,
-          }}
-        >
-          {event.eventType === "race" ? event.raceName : event.eventName}
-        </h2>
-
-        {/* Subhead: Circuit · Location */}
-        <p
-          className="mb-4 text-lg transition-colors duration-300"
-          style={{
-            color: "var(--text-secondary)",
-            textDecoration: isCanceledRace ? "line-through" : undefined,
-            opacity: isCanceledRace ? 0.7 : 1,
-          }}
-        >
-          {event.circuitName} · {event.city && `${event.city}, `}
-          {event.country}
-        </p>
-
-        {/* Date */}
-        <p
-          className="text-sm transition-colors duration-300"
-          style={{
-            color: "var(--text-tertiary)",
-            textDecoration: isCanceledRace ? "line-through" : undefined,
-            opacity: isCanceledRace ? 0.7 : 1,
-          }}
-        >
-          {event.eventType === "race" && isCanceledRace && (
-            <span className="mr-2 font-medium" style={{ color: "var(--text-secondary)" }}>
-              Originally planned:
-            </span>
-          )}
-          {event.eventType === "race" 
-            ? formatDate(event.raceDate)
-            : formatDateRange(event.startDate, event.endDate)
-          }
-        </p>
       </div>
     </div>
   );

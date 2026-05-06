@@ -6,6 +6,7 @@ import { testingEvents2026 } from "@/data/testing-events-2026";
 import { calendarEvents2026 } from "@/data/calendar-events-2026";
 import type { CalendarEvent } from "@/types/race";
 import ThemeToggle from "@/components/ThemeToggle";
+import NavigationMenu from "@/components/NavigationMenu";
 import GlobeMap from "@/components/GlobeMap";
 import SeasonTimeline from "@/components/SeasonTimeline";
 import RacePanel from "@/components/RacePanel";
@@ -40,7 +41,10 @@ export default function Home() {
             <h1 className="text-2xl sm:text-4xl font-bold transition-colors duration-300" style={{ color: "var(--text-primary)" }}>
               F1 2026 Calendar
             </h1>
-            <ThemeToggle />
+            <div className="flex items-center gap-2">
+              <NavigationMenu />
+              <ThemeToggle />
+            </div>
           </div>
           <div className="mb-2 flex flex-col justify-between gap-2 sm:gap-4 sm:flex-row sm:items-end">
             <p className="text-sm sm:text-lg transition-colors duration-300" style={{ color: "var(--text-secondary)" }}>
@@ -65,21 +69,34 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Event panel */}
-        <div className="mb-4 sm:mb-8">
-          <RacePanel 
-            event={selectedEvent} 
+        {/* Race Control: detail card + timeline (visually linked) */}
+        <div className="mb-4 space-y-0 sm:mb-8">
+          <RacePanel
+            event={selectedEvent}
             allEvents={calendarEvents2026}
             onNavigate={handleSelectEvent}
           />
+          <div
+            className="pointer-events-none flex justify-center"
+            style={{ marginTop: "-2px" }}
+            aria-hidden
+          >
+            <div
+              className="h-10 w-px sm:h-12"
+              style={{
+                background:
+                  "linear-gradient(to bottom, color-mix(in srgb, var(--accent-primary) 55%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 18%, transparent) 55%, transparent 100%)",
+                boxShadow:
+                  "0 0 18px color-mix(in srgb, var(--accent-primary) 40%, transparent)",
+              }}
+            />
+          </div>
+          <SeasonTimeline
+            events={calendarEvents2026}
+            selectedEventId={selectedEventId}
+            onSelectEvent={handleSelectEvent}
+          />
         </div>
-
-        {/* Timeline scrubber */}
-        <SeasonTimeline
-          events={calendarEvents2026}
-          selectedEventId={selectedEventId}
-          onSelectEvent={handleSelectEvent}
-        />
       </main>
     </div>
   );
