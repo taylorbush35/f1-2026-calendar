@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "F1 2026 Calendar",
+  title: "F1 2026 Trackside",
   description: "A product-first view of the F1 2026 season — weekends, formats, and the rhythm of the calendar.",
 };
 
